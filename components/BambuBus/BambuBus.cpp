@@ -106,7 +106,7 @@ _filament_motion_state_set get_filament_motion(int num)
 }
 
 uint8_t buf_X[1000];
-CRC8 _RX_IRQ_crcx(0x39, 0x66, 0x00, false, false);
+// CRC8 _RX_IRQ_crcx(0x39, 0x66, 0x00, false, false);
 void inline RX_IRQ(unsigned char _RX_IRQ_data)
 {
     static int _index = 0;
