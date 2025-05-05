@@ -6,6 +6,7 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h" // <<<--- 确保包含 GPIOPin 定义
 // #include "main.h"
+#include "crc.h"
 
 #define Bambubus_version 5
 
