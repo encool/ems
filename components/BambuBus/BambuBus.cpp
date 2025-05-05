@@ -1130,7 +1130,7 @@ package_type BambuBus_run()
 
 void BambuBus::setup()
 {
-    ESP_LOGCONFIG(BambuBus::TAG, "Setup started");
+    ESP_LOGCONFIG(TAG, "Setup started");
 
     g_bambu_bus_instance = this;
 
