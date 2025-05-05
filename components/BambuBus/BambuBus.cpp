@@ -1042,7 +1042,7 @@ void send_for_Set_filament(unsigned char *buf, int length)
     Bambubus_set_need_to_save();
 }
 
-package_type BambuBus_run()
+package_type BambuBus::BambuBus_run()
 {
     package_type stu = BambuBus_package_NONE;
     static uint64_t time_set = 0;

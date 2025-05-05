@@ -47,7 +47,7 @@ extern "C"
         __BambuBus_package_packge_type_size
     };
     extern void BambuBus_init();
-    extern package_type BambuBus_run();
+    // extern package_type BambuBus_run();
 #define max_filament_num 4
     extern bool Bambubus_read();
     extern void Bambubus_set_need_to_save();
