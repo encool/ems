@@ -7,8 +7,10 @@ from esphome.const import CONF_ID
 from esphome.pins import gpio_output_pin_schema
 DEPENDENCIES = ['uart', 'output']
 
-empty_uart_component_ns = cg.esphome_ns.namespace('bambu_bus')
-EmptyUARTComponent = empty_uart_component_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
+# empty_uart_component_ns = cg.esphome_ns.namespace('bambu_bus')
+# EmptyUARTComponent = empty_uart_component_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
+
+EmptyUARTComponent = cg.class_('BambuBus', cg.Component, uart.UARTDevice)
 
 CONF_DE_PIN = 'de_pin'
 
