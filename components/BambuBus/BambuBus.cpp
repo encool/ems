@@ -5,6 +5,11 @@
 // Global pointer to hold the single BambuBus instance
 BambuBus* g_bambu_bus_instance = nullptr;
 
+// 定义并初始化全局 CRC 对象 (只在这里做一次)
+CRC16 crc_16{0x1021, 0x913D, 0, false, false};
+CRC8 crc_8{0x39, 0x66, 0, false, false};
+CRC8 _RX_IRQ_crcx{0x39, 0x66, 0x00, false, false};
+
 uint8_t BambuBus_data_buf[1000];
 int BambuBus_have_data = 0;
 uint16_t BambuBus_address = 0;
