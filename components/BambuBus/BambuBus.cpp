@@ -5,9 +5,6 @@
 // Global pointer to hold the single BambuBus instance
 BambuBus* g_bambu_bus_instance = nullptr;
 
-CRC16 crc_16;
-CRC8 crc_8;
-
 uint8_t BambuBus_data_buf[1000];
 int BambuBus_have_data = 0;
 uint16_t BambuBus_address = 0;
