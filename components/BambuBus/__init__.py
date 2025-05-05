@@ -10,7 +10,7 @@ DEPENDENCIES = ['uart', 'output']
 # empty_uart_component_ns = cg.esphome_ns.namespace('bambu_bus')
 # EmptyUARTComponent = empty_uart_component_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
 
-EmptyUARTComponent = cg.class_('BambuBus', cg.Component, uart.UARTDevice)
+EmptyUARTComponent = cg.esphome_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
 
 CONF_DE_PIN = 'de_pin'
 
