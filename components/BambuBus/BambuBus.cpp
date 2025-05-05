@@ -1,5 +1,5 @@
 #include "BambuBus.h"
-#include "CRC.h"
+#include "crc.h"
 #include <string.h>
 
 // Global pointer to hold the single BambuBus instance
