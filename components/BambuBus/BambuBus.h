@@ -83,6 +83,6 @@ private:
 };
 
 // CRC instances
-// CRC16 crc_16{0x1021, 0x913D, 0, false, false};
-// CRC8 crc_8{0x39, 0x66, 0, false, false};
-// CRC8 _RX_IRQ_crcx{0x39, 0x66, 0x00, false, false};
+CRC16 crc_16{0x1021, 0x913D, 0, false, false};
+CRC8 crc_8{0x39, 0x66, 0, false, false};
+CRC8 _RX_IRQ_crcx{0x39, 0x66, 0x00, false, false};
