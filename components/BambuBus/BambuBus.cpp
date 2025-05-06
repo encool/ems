@@ -1180,7 +1180,7 @@ void BambuBus::loop()
     }
 
     // Process received data
-    BambuBus_run();
+    // BambuBus_run();
 }
 
 // 用于带 DE 控制发送的新函数
