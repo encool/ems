@@ -3,7 +3,7 @@
 #include <string.h>
 
 // Global pointer to hold the single BambuBus instance
-BambuBus* g_bambu_bus_instance = nullptr;
+BambuBus *g_bambu_bus_instance = nullptr;
 
 // 定义并初始化全局 CRC 对象 (只在这里做一次)
 CRC16 crc_16{0x1021, 0x913D, 0, false, false};
@@ -47,7 +47,7 @@ struct alignas(4) flash_save_struct
 bool Bambubus_read()
 {
     flash_save_struct *ptr = (flash_save_struct *)(use_flash_addr);
-    if ((ptr->check == 0x40614061)&&(ptr->version==Bambubus_version))
+    if ((ptr->check == 0x40614061) && (ptr->version == Bambubus_version))
     {
         memcpy(&data_save, ptr, sizeof(data_save));
         return true;
@@ -267,9 +267,10 @@ void inline RX_IRQ(unsigned char _RX_IRQ_data)
 // }
 void BambuBus_init()
 {
-    bool _init_ready = Bambubus_read();
+    // bool _init_ready = Bambubus_read();
     // crc_8.reset(0x39, 0x66, 0, false, false);
     // crc_16.reset(0x1021, 0x913D, 0, false, false);
+    bool _init_ready = false;
 
     if (!_init_ready)
     {
@@ -329,12 +330,12 @@ void BambuBus_init()
     {
         for (auto &j : i)
         {
-#ifdef _Bambubus_DEBUG_mode_
-            j.statu = online;
-#else
+            // #ifdef _Bambubus_DEBUG_mode_
+            //             j.statu = online;
+            // #else
+            //             j.statu = offline;
+            // #endif // DEBUG
             j.statu = offline;
-#endif // DEBUG
-
             j.motion_set = idle;
         }
     }
@@ -440,8 +441,6 @@ void Bambubus_long_package_analysis(uint8_t *buf, int data_length, long_packge_d
     data->data_length = data_length - 15; // +2byte CRC16
 }
 
-
-
 long_packge_data printer_data_long;
 package_type get_packge_type(unsigned char *buf, int length)
 {
@@ -514,7 +513,6 @@ uint8_t get_filament_left_char(uint8_t AMS_num)
                 data |= (0x2 << i) << i; // 2<<(2*i)
             }
         }
-        
     }
     return data;
 }
@@ -609,9 +607,9 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
         }
         else if (read_num == 0xFF)
         {
-            for(int i=0;i<4;i++)
+            for (int i = 0; i < 4; i++)
             {
-                data_save.filament[AMS_num][i].motion_set=idle;
+                data_save.filament[AMS_num][i].motion_set = idle;
             }
         }
     }
@@ -620,7 +618,7 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
         if ((read_num != 0xFF) && (read_num < 4))
         {
             data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
-                data_save.filament[AMS_num][read_num].motion_set = on_use;
+            data_save.filament[AMS_num][read_num].motion_set = on_use;
         }
     }
     else
@@ -1056,7 +1054,6 @@ package_type BambuBus::BambuBus_run()
     uint32_t timex = esphome::millis(); // 使用 ESPHome 的时间函数
 
     // uint64_t timex = get_time64();
-    
 
     /*for (auto i : data_save.filament)
     {
@@ -1068,7 +1065,7 @@ package_type BambuBus::BambuBus_run()
         int data_length = BambuBus_have_data;
         BambuBus_have_data = 0;
         need_debug = false;
-        
+
         stu = get_packge_type(buf_X, data_length); // have_data
         switch (stu)
         {
@@ -1080,7 +1077,7 @@ package_type BambuBus::BambuBus_run()
             break;
         case BambuBus_package_filament_motion_long:
             send_for_Dxx(buf_X, data_length);
-            time_motion =timex + 1000;
+            time_motion = timex + 1000;
             break;
         case BambuBus_package_online_detect:
 
@@ -1114,10 +1111,10 @@ package_type BambuBus::BambuBus_run()
     }
     if (timex > time_motion)
     {
-        //set_filament_motion(get_now_filament_num(),idle);
-        for(auto i:data_save.filament)
+        // set_filament_motion(get_now_filament_num(),idle);
+        for (auto i : data_save.filament)
         {
-            i->motion_set=idle;
+            i->motion_set = idle;
         }
     }
     if (Bambubus_need_to_save)
@@ -1131,7 +1128,6 @@ package_type BambuBus::BambuBus_run()
     // NFC_detect_run();
     return stu;
 }
-
 
 void BambuBus::setup()
 {
