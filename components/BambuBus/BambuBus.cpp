@@ -161,6 +161,7 @@ void inline RX_IRQ(unsigned char _RX_IRQ_data)
         {
             if (data != _RX_IRQ_crcx.calc())
             {
+                ESP_LOGW(TAG, "CRC mismatch! Resetting frame parser");
                 _index = 0;
                 return;
             }
@@ -171,6 +172,10 @@ void inline RX_IRQ(unsigned char _RX_IRQ_data)
             _index = 0;
             memcpy(buf_X, BambuBus_data_buf, length);
             BambuBus_have_data = length;
+            // 使用 ESPHome 的 format_hex_pretty
+            std::string hexdump = esphome::format_hex_pretty(buf_X, length);
+            // 注意：可能需要分行打印，如果 hexdump 太长
+            ESP_LOGD(TAG, "Received Data:\n%s length (%d bytes)", hexdump.c_str(), BambuBus_have_data);
         }
         if (_index >= 999)
         {
@@ -1070,38 +1075,53 @@ package_type BambuBus::BambuBus_run()
         switch (stu)
         {
         case BambuBus_package_heartbeat:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_heartbeat)...");
             time_set = timex + 1000;
             break;
         case BambuBus_package_filament_motion_short:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_short)...");
             send_for_Cxx(buf_X, data_length);
             break;
         case BambuBus_package_filament_motion_long:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_long)...");
             send_for_Dxx(buf_X, data_length);
             time_motion = timex + 1000;
             break;
         case BambuBus_package_online_detect:
-
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_online_detect)...");
             send_for_Fxx(buf_X, data_length);
             break;
         case BambuBus_package_REQx6:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_REQx6)...");
             // send_for_REQx6(buf_X, data_length);
             break;
         case BambuBus_long_package_MC_online:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_long_package_MC_online)...");
             send_for_long_packge_MC_online(buf_X, data_length);
             break;
         case BambuBus_longe_package_filament:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_longe_package_filament)...");
             send_for_long_packge_filament(buf_X, data_length);
             break;
         case BambuBus_long_package_version:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_long_package_version)...");
             send_for_long_packge_version(buf_X, data_length);
             break;
         case BambuBus_package_NFC_detect:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_NFC_detect)...");
             // send_for_NFC_detect(buf_X, data_length);
             break;
         case BambuBus_package_set_filament:
+            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_set_filament)...");
             send_for_Set_filament(buf_X, data_length);
             break;
         default:
+            // It's also good practice to log the default case, especially if it represents an unknown or unhandled package type.
+            // You might want to use ESP_LOGW (Warning) or ESP_LOGE (Error) here depending on how unexpected this is.
+            // For consistency with the request to just add logs, using ESP_LOGD here.
+            // Consider logging the actual value that caused the default case if 'package_type' is accessible.
+            // ESP_LOGW(TAG, "Processing package (Type: Unknown/Default, Value: %d)...", package_type);
+            ESP_LOGW(TAG, "Processing package (Type: Unhandled/Default)...");
             break;
         }
     }
@@ -1197,7 +1217,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
 
     ESP_LOGD(TAG, "Sending %d bytes...", length);
     // 使用 format_hex_pretty 打印准备发送的数据
-    if (this->need_debug)
+    if (true)
     { // 或者使用更精细的日志级别控制
         ESP_LOGD(TAG, "  %s", esphome::format_hex_pretty(data, length).c_str());
     }
@@ -1211,7 +1231,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     if (this->de_pin_ != nullptr)
     {
         // 在禁用 DE 之前可能需要短暂延迟，确保最后一个停止位完全发出
-        esphome::delayMicroseconds(10);       // 示例: 5 微秒，根据硬件调整
+        esphome::delayMicroseconds(10);      // 示例: 5 微秒，根据硬件调整
         this->de_pin_->digital_write(false); // 禁用发送 (低电平)
         ESP_LOGV(TAG, "DE pin set LOW.");
     }
