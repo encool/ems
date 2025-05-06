@@ -1165,21 +1165,21 @@ void BambuBus::setup()
 
 void BambuBus::loop()
 {
-    static uint8_t buf[1000];
-    static size_t pos = 0;
+    // static uint8_t buf[1000];
+    // static size_t pos = 0;
 
-    // Read incoming data
-    while (available())
-    {
-        // ESP_LOGI(BambuBus::TAG, "data available");
-        uint8_t c;
-        if (read_byte(&c))
-        {
-            RX_IRQ(c);
-        }
-    }
+    // // Read incoming data
+    // while (available())
+    // {
+    //     // ESP_LOGI(BambuBus::TAG, "data available");
+    //     uint8_t c;
+    //     if (read_byte(&c))
+    //     {
+    //         RX_IRQ(c);
+    //     }
+    // }
 
-    // Process received data
+    // // Process received data
     // BambuBus_run();
 }
 
