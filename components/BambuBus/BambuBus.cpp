@@ -96,7 +96,7 @@ void Bambubus_save()
     // 使用 g_bambu_bus_instance 指向的实例的 pref_ 对象保存数据
     if (g_bambu_bus_instance->pref_.save(&data_save))
     {
-        ESP_LOGD(TAG, "Successfully saved data to flash.");
+        ESP_LOGI(TAG, "Successfully saved data to flash.");
         Bambubus_need_to_save = false; // 成功保存后清除标志
     }
     else
@@ -1074,7 +1074,7 @@ package_type BambuBus::BambuBus_run()
             // send_for_NFC_detect(buf_X, data_length);
             break;
         case BambuBus_package_set_filament:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_set_filament)...");
+            ESP_LOGI(TAG, "Processing package (Type: BambuBus_package_set_filament)...");
             send_for_Set_filament(buf_X, data_length);
             break;
         default:
