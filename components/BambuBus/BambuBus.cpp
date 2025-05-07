@@ -340,7 +340,8 @@ void BambuBus_init()
             // #else
             //             j.statu = offline;
             // #endif // DEBUG
-            j.statu = offline;
+            // j.statu = offline;
+            j.statu = online;
             j.motion_set = idle;
         }
     }
