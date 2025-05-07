@@ -66,9 +66,12 @@ extern "C"
 class BambuBus : public esphome::Component, public esphome::uart::UARTDevice
 {
 protected:
-    esphome::ESPPreferenceObject pref_;
     esphome::GPIOPin *de_pin_{nullptr}; // <<<--- 添加 DE 引脚成员变量
+    bool initialized_{false};           // 用于跟踪 pref_ 是否已初始化
+
 public:
+    esphome::ESPPreferenceObject pref_;
+
     BambuBus() : UARTDevice() {}
 
     void setup() override;
@@ -77,11 +80,12 @@ public:
     void set_de_pin(esphome::GPIOPin *de_pin) { this->de_pin_ = de_pin; }
     void send_uart_with_de(const uint8_t *data, uint16_t length); // 用于带 DE 控制发送的新方法
     package_type BambuBus_run();
+    bool is_initialized_() const { return this->initialized_; }
+    void mark_initialized_() { this->initialized_ = true; }
+
 private:
     bool need_debug = true;
-
 };
-
 
 // ... 其他类/函数声明 ...
 

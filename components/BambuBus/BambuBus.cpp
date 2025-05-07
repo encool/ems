@@ -1,6 +1,9 @@
 #include "BambuBus.h"
 #include "crc.h"
 #include <string.h>
+#include <stdio.h>
+#include "esphome/core/helpers.h" // <<<--- 添加这一行
+
 
 // Global pointer to hold the single BambuBus instance
 BambuBus *g_bambu_bus_instance = nullptr;
@@ -44,25 +47,62 @@ struct alignas(4) flash_save_struct
     uint32_t check = 0x40614061;
 } data_save;
 
-bool Bambubus_read()
-{
-    flash_save_struct *ptr = (flash_save_struct *)(use_flash_addr);
-    if ((ptr->check == 0x40614061) && (ptr->version == Bambubus_version))
-    {
-        memcpy(&data_save, ptr, sizeof(data_save));
-        return true;
-    }
-    return false;
-}
 bool Bambubus_need_to_save = false;
 void Bambubus_set_need_to_save()
 {
     Bambubus_need_to_save = true;
 }
+bool Bambubus_read()
+{
+    if (g_bambu_bus_instance == nullptr || !g_bambu_bus_instance->is_initialized_())
+    {
+        ESP_LOGW(TAG, "Bambubus_read: BambuBus instance not ready for preferences.");
+        return false;
+    }
+
+    flash_save_struct temp_data; // 临时结构用于加载
+    // 使用 g_bambu_bus_instance 指向的实例的 pref_ 对象加载数据
+    if (g_bambu_bus_instance->pref_.load(&temp_data))
+    {
+        if ((temp_data.check == 0x40614061) && (temp_data.version == Bambubus_version))
+        {
+            memcpy(&data_save, &temp_data, sizeof(data_save));
+            ESP_LOGD(TAG, "Successfully loaded data from flash.");
+            return true;
+        }
+        else
+        {
+            ESP_LOGW(TAG, "Flash data checksum or version mismatch. (check: 0x%08X, version: %u)", temp_data.check, temp_data.version);
+        }
+    }
+    else
+    {
+        ESP_LOGD(TAG, "Failed to load data from flash or no data found.");
+    }
+    return false;
+}
+
 void Bambubus_save()
 {
-    ESP_LOGE(TAG, "Bambubus_save not implemented!");
-    // Flash_saves(&data_save, sizeof(data_save), use_flash_addr);
+    if (g_bambu_bus_instance == nullptr || !g_bambu_bus_instance->is_initialized_())
+    {
+        ESP_LOGE(TAG, "Bambubus_save: BambuBus instance not ready for preferences.");
+        return;
+    }
+
+    data_save.version = Bambubus_version;
+    data_save.check = 0x40614061; // 设置校验和
+
+    // 使用 g_bambu_bus_instance 指向的实例的 pref_ 对象保存数据
+    if (g_bambu_bus_instance->pref_.save(&data_save))
+    {
+        ESP_LOGD(TAG, "Successfully saved data to flash.");
+        Bambubus_need_to_save = false; // 成功保存后清除标志
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Failed to save data to flash!");
+    }
 }
 
 int get_now_filament_num()
@@ -184,98 +224,10 @@ void inline RX_IRQ(unsigned char _RX_IRQ_data)
     }
 }
 
-#include <stdio.h>
-
-// DMA_InitTypeDef Bambubus_DMA_InitStructure;
-// void send_uart(const unsigned char *data, uint16_t length)
-// {
-//     DMA_DeInit(DMA1_Channel4);
-//     // Configure DMA1 channel 4 for USART1 TX
-//     Bambubus_DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)data;
-//     Bambubus_DMA_InitStructure.DMA_BufferSize = length;
-//     DMA_Init(DMA1_Channel4, &Bambubus_DMA_InitStructure);
-//     DMA_Cmd(DMA1_Channel4, ENABLE);
-//     GPIOA->BSHR = GPIO_Pin_12;
-//     // Enable USART1 DMA send
-//     USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
-// }
-
-// void BambuBUS_UART_Init()
-// {
-//     GPIO_InitTypeDef GPIO_InitStructure = {0};
-//     USART_InitTypeDef USART_InitStructure = {0};
-//     NVIC_InitTypeDef NVIC_InitStructure = {0};
-
-//     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
-//     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-//     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-
-//     /* USART1 TX-->A.9   RX-->A.10 */
-//     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; // TX
-//     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-//     GPIO_Init(GPIOA, &GPIO_InitStructure);
-//     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; // RX
-//     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-//     GPIO_Init(GPIOA, &GPIO_InitStructure);
-//     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12; // DE
-//     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-//     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-//     GPIO_Init(GPIOA, &GPIO_InitStructure);
-//     GPIOA->BCR = GPIO_Pin_12;
-
-//     USART_InitStructure.USART_BaudRate = 1250000;
-//     USART_InitStructure.USART_WordLength = USART_WordLength_9b;
-//     USART_InitStructure.USART_StopBits = USART_StopBits_1;
-//     USART_InitStructure.USART_Parity = USART_Parity_Even;
-//     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-//     USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
-
-//     USART_Init(USART1, &USART_InitStructure);
-//     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-//     USART_ITConfig(USART1, USART_IT_TC, ENABLE);
-
-//     NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-//     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-//     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//     NVIC_Init(&NVIC_InitStructure);
-
-//     // Configure DMA1 channel 4 for USART1 TX
-//     Bambubus_DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&USART1->DATAR;
-//     Bambubus_DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)0;
-//     Bambubus_DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-//     Bambubus_DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-//     Bambubus_DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-//     Bambubus_DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-//     Bambubus_DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
-//     Bambubus_DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-//     Bambubus_DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-//     Bambubus_DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-//     Bambubus_DMA_InitStructure.DMA_BufferSize = 0;
-
-//     USART_Cmd(USART1, ENABLE);
-// }
-
-// extern "C" void USART1_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
-// void USART1_IRQHandler(void)
-// {
-//     if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
-//     {
-//         RX_IRQ(USART_ReceiveData(USART1));
-//     }
-//     if (USART_GetITStatus(USART1, USART_IT_TC) != RESET)
-//     {
-//         USART_ClearITPendingBit(USART1, USART_IT_TC);
-//         GPIOA->BCR = GPIO_Pin_12;
-//     }
-// }
 void BambuBus_init()
 {
-    // bool _init_ready = Bambubus_read();
-    // crc_8.reset(0x39, 0x66, 0, false, false);
-    // crc_16.reset(0x1021, 0x913D, 0, false, false);
-    bool _init_ready = false;
+    // 尝试从 Flash 加载数据
+    bool _init_ready = Bambubus_read();
 
     if (!_init_ready)
     {
@@ -331,20 +283,29 @@ void BambuBus_init()
         data_save.filament[3][3].color_G = 0x20;
         data_save.filament[3][3].color_B = 0x20;
     }
-    for (auto &i : data_save.filament)
-    {
-        for (auto &j : i)
+        // 初始化每个耗材槽的默认状态和动态属性
+        for (auto &ams_slots : data_save.filament)
         {
-            // #ifdef _Bambubus_DEBUG_mode_
-            //             j.statu = online;
-            // #else
-            //             j.statu = offline;
-            // #endif // DEBUG
-            // j.statu = offline;
-            j.statu = online;
-            j.motion_set = idle;
+            for (auto &slot : ams_slots)
+            {
+                strncpy(slot.ID, "GFG00", sizeof(slot.ID) - 1); // 默认ID
+                slot.ID[sizeof(slot.ID) -1] = '\0';
+                slot.color_A = 0xFF; // 默认Alpha
+                slot.temperature_min = 220; // 默认最低温度
+                slot.temperature_max = 240; // 默认最高温度
+                strncpy(slot.name, "PETG", sizeof(slot.name) - 1); // 默认名称
+                slot.name[sizeof(slot.name)-1] = '\0';
+                slot.meters = 0; // 默认使用长度
+                slot.statu = online; // 默认状态
+                slot.motion_set = idle; // 默认运动状态
+            }
         }
-    }
+        // 为新初始化的数据设置当前耗材编号、版本和校验和
+        data_save.BambuBus_now_filament_num = 0;
+        data_save.version = Bambubus_version;
+        data_save.check = 0x40614061;
+
+        Bambubus_set_need_to_save(); // 标记这些默认数据需要保存到Flash
 
     // BambuBUS_UART_Init();
 }
@@ -1133,10 +1094,22 @@ package_type BambuBus::BambuBus_run()
     if (timex > time_motion)
     {
         // set_filament_motion(get_now_filament_num(),idle);
-        for (auto i : data_save.filament)
+        // for (auto i : data_save.filament)
+        // {
+        //     i->motion_set = idle;
+        // }
+
+        for (auto i : data_save.filament) // i 是 flash_save_struct::filament数组中的一个元素，即 _filament[4]
         {
-            i->motion_set = idle;
+            // i->motion_set = idle; // 错误: i 不是指针，且 filament 是二维数组 data_save.filament[ams_idx][slot_idx]
+            // 正确的遍历方式：
+            for (auto &ams_slots : data_save.filament) { // ams_slots 是 _filament[4]
+                for (auto &slot : ams_slots) { // slot 是 _filament
+                    slot.motion_set = idle;
+                }
+            }
         }
+
     }
     if (Bambubus_need_to_save)
     {
@@ -1156,11 +1129,14 @@ void BambuBus::setup()
 
     g_bambu_bus_instance = this;
 
-    // 确保全局偏好已初始化
-    if (!esphome::global_preferences)
-    {
-        esphome::global_preferences = esphome::global_preferences;
-    }
+    const char *preference_key = "bambubus_storage_001"; // 选择一个对您的组件来说唯一的键
+
+
+    // 初始化 ESPPreferenceObject
+    // 使用 get_object_id_hash() 来为每个组件实例创建唯一的key
+    // 第二个参数 false 表示 autosave=false，需要显式调用 save()
+    this->pref_ = esphome::global_preferences->make_preference<flash_save_struct>(esphome::fnv1_hash(preference_key));
+    this->mark_initialized_(); // 标记 preferences 对象已初始化并可用
 
     // 设置 DE 引脚 (如果已配置)
     if (this->de_pin_ != nullptr)
