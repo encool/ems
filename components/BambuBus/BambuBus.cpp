@@ -67,7 +67,7 @@ bool Bambubus_read()
         if ((temp_data.check == 0x40614061) && (temp_data.version == Bambubus_version))
         {
             memcpy(&data_save, &temp_data, sizeof(data_save));
-            ESP_LOGD(TAG, "Successfully loaded data from flash.");
+            ESP_LOGI(TAG, "Successfully loaded data from flash.");
             return true;
         }
         else
@@ -1125,7 +1125,7 @@ package_type BambuBus::BambuBus_run()
 
 void BambuBus::setup()
 {
-    ESP_LOGCONFIG(TAG, "Setup started");
+    ESP_LOGI(TAG, "Setup started");
 
     g_bambu_bus_instance = this;
 
@@ -1145,15 +1145,16 @@ void BambuBus::setup()
         // this->de_pin_->setup(); // 可能不需要
         this->de_pin_->digital_write(false); // <<<--- 使用 turn_off() 设置初始状态 (接收)
         // vvv--- 获取引脚号需要通过 get_pin() 方法 ---vvv
-        ESP_LOGCONFIG(TAG, "DE Pin (GPIOBinaryOutput) configured on GPIO%d. Initial state: OFF (Receive)", this->de_pin_->dump_summary());
+        ESP_LOGI(TAG, "DE Pin (GPIOBinaryOutput) configured on GPIO%d. Initial state: OFF (Receive)", this->de_pin_->dump_summary());
         // ^^^--- 注意是 de_pin_->get_pin()->get_pin() ---^^^
     }
     else
     {
-        ESP_LOGCONFIG(TAG, "DE Pin not configured.");
+        ESP_LOGI(TAG, "DE Pin not configured.");
     }
 
     BambuBus_init();
+    ESP_LOGI(TAG, "Setup ended");
 }
 
 void BambuBus::loop()
