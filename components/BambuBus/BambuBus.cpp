@@ -227,8 +227,8 @@ void inline RX_IRQ(unsigned char _RX_IRQ_data)
 void BambuBus_init()
 {
     // 尝试从 Flash 加载数据
-    bool _init_ready = Bambubus_read();
-
+    // bool _init_ready = Bambubus_read();
+    bool _init_ready = false;
     if (!_init_ready)
     {
         data_save.filament[0][0].color_R = 0xFF;
