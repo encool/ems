@@ -327,7 +327,6 @@ bool package_check_crc16(uint8_t *data, int data_length)
 bool need_debug = false;
 void package_send_with_crc(uint8_t *data, int data_length)
 {
-
     crc_8.restart();
     if (data[1] & 0x80)
     {
@@ -359,7 +358,7 @@ void package_send_with_crc(uint8_t *data, int data_length)
     if (g_bambu_bus_instance != nullptr)
     {
         // Call the send method ON THE SPECIFIC INSTANCE
-        g_bambu_bus_instance->send_uart_with_de(data, data_length);
+        // g_bambu_bus_instance->send_uart_with_de(data, data_length);
     }
     else
     {
