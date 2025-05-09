@@ -1129,13 +1129,13 @@ void BambuBus::setup()
 
     g_bambu_bus_instance = this;
 
-    const char *preference_key = "bambubus_storage_001"; // 选择一个对您的组件来说唯一的键
+    // const char *preference_key = "bambubus_storage_001"; // 选择一个对您的组件来说唯一的键
 
 
     // 初始化 ESPPreferenceObject
     // 使用 get_object_id_hash() 来为每个组件实例创建唯一的key
     // 第二个参数 false 表示 autosave=false，需要显式调用 save()
-    this->pref_ = esphome::global_preferences->make_preference<flash_save_struct>(esphome::fnv1_hash(preference_key));
+    // this->pref_ = esphome::global_preferences->make_preference<flash_save_struct>(esphome::fnv1_hash(preference_key));
     this->mark_initialized_(); // 标记 preferences 对象已初始化并可用
 
     // 设置 DE 引脚 (如果已配置)
