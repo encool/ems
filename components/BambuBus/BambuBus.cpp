@@ -1111,12 +1111,12 @@ package_type BambuBus::BambuBus_run()
         }
 
     }
-    if (Bambubus_need_to_save)
-    {
-        Bambubus_save();
-        time_set = timex + 1000;
-        Bambubus_need_to_save = false;
-    }
+    // if (Bambubus_need_to_save)
+    // {
+    //     Bambubus_save();
+    //     time_set = timex + 1000;
+    //     Bambubus_need_to_save = false;
+    // }
     // HAL_UART_Transmit(&use_Serial.handle,&s,1,1000);
 
     // NFC_detect_run();
