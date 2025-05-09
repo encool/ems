@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "esphome/core/helpers.h" // <<<--- 添加这一行
 
-
 // Global pointer to hold the single BambuBus instance
 BambuBus *g_bambu_bus_instance = nullptr;
 
@@ -283,29 +282,31 @@ void BambuBus_init()
         data_save.filament[3][3].color_G = 0x20;
         data_save.filament[3][3].color_B = 0x20;
     }
-        // 初始化每个耗材槽的默认状态和动态属性
-        for (auto &ams_slots : data_save.filament)
+    // 初始化每个耗材槽的默认状态和动态属性
+    for (auto &ams_slots : data_save.filament)
+    {
+        for (auto &slot : ams_slots)
         {
-            for (auto &slot : ams_slots)
-            {
-                strncpy(slot.ID, "GFG00", sizeof(slot.ID) - 1); // 默认ID
-                slot.ID[sizeof(slot.ID) -1] = '\0';
-                slot.color_A = 0xFF; // 默认Alpha
-                slot.temperature_min = 220; // 默认最低温度
-                slot.temperature_max = 240; // 默认最高温度
-                strncpy(slot.name, "PETG", sizeof(slot.name) - 1); // 默认名称
-                slot.name[sizeof(slot.name)-1] = '\0';
-                slot.meters = 0; // 默认使用长度
-                slot.statu = online; // 默认状态
-                slot.motion_set = idle; // 默认运动状态
-            }
-        }
-        // 为新初始化的数据设置当前耗材编号、版本和校验和
-        data_save.BambuBus_now_filament_num = 0;
-        data_save.version = Bambubus_version;
-        data_save.check = 0x40614061;
+            strncpy(slot.ID, "GFG00", sizeof(slot.ID) - 1); // 默认ID
+            slot.ID[sizeof(slot.ID) - 1] = '\0';
+            slot.color_A = 0xFF;                               // 默认Alpha
+            slot.temperature_min = 220;                        // 默认最低温度
+            slot.temperature_max = 240;                        // 默认最高温度
+            strncpy(slot.name, "PETG", sizeof(slot.name) - 1); // 默认名称
+            slot.name[sizeof(slot.name) - 1] = '\0';
+            slot.meters = 0;      // 默认使用长度
+                                  // slot.statu = online; // 默认状态
+            slot.statu = offline; // 默认状态
 
-        Bambubus_set_need_to_save(); // 标记这些默认数据需要保存到Flash
+            slot.motion_set = idle; // 默认运动状态
+        }
+    }
+    // 为新初始化的数据设置当前耗材编号、版本和校验和
+    data_save.BambuBus_now_filament_num = 0;
+    data_save.version = Bambubus_version;
+    data_save.check = 0x40614061;
+
+    // Bambubus_set_need_to_save(); // 标记这些默认数据需要保存到Flash
 
     // BambuBUS_UART_Init();
 }
@@ -1103,13 +1104,14 @@ package_type BambuBus::BambuBus_run()
         {
             // i->motion_set = idle; // 错误: i 不是指针，且 filament 是二维数组 data_save.filament[ams_idx][slot_idx]
             // 正确的遍历方式：
-            for (auto &ams_slots : data_save.filament) { // ams_slots 是 _filament[4]
-                for (auto &slot : ams_slots) { // slot 是 _filament
+            for (auto &ams_slots : data_save.filament)
+            { // ams_slots 是 _filament[4]
+                for (auto &slot : ams_slots)
+                { // slot 是 _filament
                     slot.motion_set = idle;
                 }
             }
         }
-
     }
     // if (Bambubus_need_to_save)
     // {
@@ -1130,7 +1132,6 @@ void BambuBus::setup()
     g_bambu_bus_instance = this;
 
     // const char *preference_key = "bambubus_storage_001"; // 选择一个对您的组件来说唯一的键
-
 
     // 初始化 ESPPreferenceObject
     // 使用 get_object_id_hash() 来为每个组件实例创建唯一的key
