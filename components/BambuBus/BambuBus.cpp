@@ -358,7 +358,7 @@ void package_send_with_crc(uint8_t *data, int data_length)
     if (g_bambu_bus_instance != nullptr)
     {
         // Call the send method ON THE SPECIFIC INSTANCE
-        // g_bambu_bus_instance->send_uart_with_de(data, data_length);
+        g_bambu_bus_instance->send_uart_with_de(data, data_length);
     }
     else
     {
@@ -1185,7 +1185,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     {
         this->de_pin_->digital_write(true); // 激活发送 (高电平)
         // 可能需要极短的延迟确保收发器状态切换 (通常非常快)
-        esphome::delayMicroseconds(10); // 示例: 5 微秒，根据硬件调整
+        esphome::delayMicroseconds(100); // 示例: 5 微秒，根据硬件调整
         ESP_LOGD(TAG, "DE pin set HIGH.");
     }
     else
@@ -1209,7 +1209,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     if (this->de_pin_ != nullptr)
     {
         // 在禁用 DE 之前可能需要短暂延迟，确保最后一个停止位完全发出
-        esphome::delayMicroseconds(10);      // 示例: 5 微秒，根据硬件调整
+        esphome::delayMicroseconds(100);      // 示例: 5 微秒，根据硬件调整
         this->de_pin_->digital_write(false); // 禁用发送 (低电平)
         ESP_LOGD(TAG, "DE pin set LOW.");
     }
