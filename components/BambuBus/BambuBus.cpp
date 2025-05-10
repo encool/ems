@@ -298,7 +298,7 @@ void BambuBus_init()
             slot.name[sizeof(slot.name) - 1] = '\0';
             slot.meters = 0;      // 默认使用长度
                                   // slot.statu = online; // 默认状态
-            slot.statu = offline; // 默认状态
+            slot.statu = online; // 默认状态
 
             slot.motion_set = idle; // 默认运动状态
         }
@@ -1189,8 +1189,6 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     if (this->de_pin_ != nullptr)
     {
         this->de_pin_->digital_write(true); // 激活发送 (高电平)
-        // this->de_pin_->digital_write(false); // 激活发送 (高电平)
-
         // 可能需要极短的延迟确保收发器状态切换 (通常非常快)
         esphome::delayMicroseconds(100); // 示例: 5 微秒，根据硬件调整
         ESP_LOGD(TAG, "DE pin set HIGH.");
@@ -1218,7 +1216,6 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
         // 在禁用 DE 之前可能需要短暂延迟，确保最后一个停止位完全发出
         esphome::delayMicroseconds(100);      // 示例: 5 微秒，根据硬件调整
         this->de_pin_->digital_write(false); // 禁用发送 (低电平)
-        // this->de_pin_->digital_write(true); // 激活发送 (高电平)
         ESP_LOGD(TAG, "DE pin set LOW.");
     }
 }
