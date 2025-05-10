@@ -308,7 +308,7 @@ void BambuBus_init()
     data_save.version = Bambubus_version;
     data_save.check = 0x40614061;
 
-    // Bambubus_set_need_to_save(); // 标记这些默认数据需要保存到Flash
+    Bambubus_set_need_to_save(); // 标记这些默认数据需要保存到Flash
 
     // BambuBUS_UART_Init();
 }
@@ -1190,7 +1190,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     {
         this->de_pin_->digital_write(true); // 激活发送 (高电平)
         // 可能需要极短的延迟确保收发器状态切换 (通常非常快)
-        esphome::delayMicroseconds(100); // 示例: 5 微秒，根据硬件调整
+        esphome::delayMicroseconds(10); // 示例: 5 微秒，根据硬件调整
         ESP_LOGD(TAG, "DE pin set HIGH.");
     }
     else
@@ -1214,7 +1214,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     if (this->de_pin_ != nullptr)
     {
         // 在禁用 DE 之前可能需要短暂延迟，确保最后一个停止位完全发出
-        esphome::delayMicroseconds(100);      // 示例: 5 微秒，根据硬件调整
+        esphome::delayMicroseconds(10);      // 示例: 5 微秒，根据硬件调整
         this->de_pin_->digital_write(false); // 禁用发送 (低电平)
         ESP_LOGD(TAG, "DE pin set LOW.");
     }
