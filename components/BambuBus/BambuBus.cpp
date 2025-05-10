@@ -1184,7 +1184,7 @@ void BambuBus::loop()
 void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
 {
 
-    ESP_LOGD(TAG, "send_uart_with_de de_pin_seted %d", de_pin_seted)
+    ESP_LOGD(TAG, "send_uart_with_de de_pin_seted %d", de_pin_seted);
     if (this->de_pin_ != nullptr)
     {
         this->de_pin_->digital_write(true); // 激活发送 (高电平)
