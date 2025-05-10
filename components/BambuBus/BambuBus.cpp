@@ -17,6 +17,8 @@ int BambuBus_have_data = 0;
 uint16_t BambuBus_address = 0;
 uint8_t AMS_num = 1;
 
+uint8_t de_pin_seted = 0;
+
 struct _filament
 {
     // AMS statu
@@ -1141,6 +1143,7 @@ void BambuBus::setup()
     // 设置 DE 引脚 (如果已配置)
     if (this->de_pin_ != nullptr)
     {
+        de_pin_seted = 1;
         // GPIOBinaryOutput* 的 setup 通常由框架自动调用
         this->de_pin_->setup(); // 可能不需要
         this->de_pin_->digital_write(false); // <<<--- 使用 turn_off() 设置初始状态 (接收)
@@ -1181,6 +1184,7 @@ void BambuBus::loop()
 void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
 {
 
+    ESP_LOGD(TAG, "send_uart_with_de de_pin_seted %d", de_pin_seted)
     if (this->de_pin_ != nullptr)
     {
         this->de_pin_->digital_write(true); // 激活发送 (高电平)
