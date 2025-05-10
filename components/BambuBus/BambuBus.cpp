@@ -1143,13 +1143,14 @@ void BambuBus::setup()
     // 设置 DE 引脚 (如果已配置)
     if (this->de_pin_ != nullptr)
     {
-        de_pin_seted = 1;
         // GPIOBinaryOutput* 的 setup 通常由框架自动调用
         this->de_pin_->setup(); // 可能不需要
-        this->de_pin_->digital_write(false); // <<<--- 使用 turn_off() 设置初始状态 (接收)
+        this->de_pin_->digital_write(true); // <<<--- 使用 turn_off() 设置初始状态 (接收)
         // vvv--- 获取引脚号需要通过 get_pin() 方法 ---vvv
         ESP_LOGI(TAG, "DE Pin (GPIOBinaryOutput) configured on GPIO%d. Initial state: OFF (Receive)", this->de_pin_->dump_summary());
         // ^^^--- 注意是 de_pin_->get_pin()->get_pin() ---^^^
+        de_pin_seted = 3;
+
     }
     else
     {
