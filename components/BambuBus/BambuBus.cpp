@@ -1209,7 +1209,7 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     this->write_array(data, length);
 
     // 等待发送完成 - 非常重要!
-    // this->flush();
+    this->flush();
     ESP_LOGV(TAG, "UART flush complete.");
 
     // 在 flush() 之后再禁用 DE
