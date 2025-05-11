@@ -12,19 +12,21 @@ DEPENDENCIES = ['uart', 'output']
 
 EmptyUARTComponent = cg.esphome_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
 
+# Forward declare select C++ classes (will be fully defined in select.py)
+FilamentStateSelect = cg.esphome_ns.class_('FilamentStateSelect')
+FilamentMotorSelect = cg.esphome_ns.class_('FilamentMotorSelect')
+
+# Configuration keys for the select entities this component will manage
+CONF_FILAMENT_STATE_SELECT = 'filament_state_select'
+CONF_FILAMENT_MOTOR_SELECT = 'filament_motor_select'
+
 CONF_DE_PIN = 'de_pin'
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(EmptyUARTComponent),
-    # <<<--- 添加 DE 引脚配置选项 (可选)
-    # vvv--- 修改 DE 引脚的配置方式 ---vvv
-    # cv.Optional(CONF_DE_PIN): PinSchema({ # 使用 PinSchema 来定义引脚
-    #     cv.Required(CONF_ID): cv.declare_id(cg.GPIOPin), # 声明一个 GPIOPin ID
-    #     # 你可以在这里添加其他引脚选项，比如反转模式 (inverted) 等，如果需要的话
-    #     # cv.Optional(CONF_MODE, default="OUTPUT"): cv.enum(GPIO_MODES, upper=True), # 强制为输出
-    # }).extend({cv.Required("mode"): "OUTPUT"}), # 确保模式是 OUTPUT
-        # vvv--- 使用简化验证：整数引脚号 + 检查是否为输出 ---vvv
-    cv.Optional(CONF_DE_PIN): gpio_output_pin_schema
+    cv.Optional(CONF_DE_PIN): gpio_output_pin_schema,
+    cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(FilamentStateSelect),
+    cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(FilamentMotorSelect),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 def to_code(config):
@@ -40,3 +42,10 @@ def to_code(config):
         pin_conf = config[CONF_DE_PIN] # 获取验证后的配置字典
         pin_expression = yield cg.gpio_pin_expression(pin_conf) # 使用字典生成表达式
         cg.add(var.set_de_pin(pin_expression))
+    if CONF_FILAMENT_STATE_SELECT in config:
+        select_entity = yield cg.get_variable(config[CONF_FILAMENT_STATE_SELECT])
+        cg.add(var.set_filament_state_select(select_entity))
+    
+    if CONF_FILAMENT_MOTOR_SELECT in config:
+        select_entity = yield cg.get_variable(config[CONF_FILAMENT_MOTOR_SELECT])
+        cg.add(var.set_filament_motor_select(select_entity))        

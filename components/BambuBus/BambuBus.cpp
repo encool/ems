@@ -1,4 +1,6 @@
 #include "BambuBus.h"
+#include "filament_state_select.h" // Include to call methods on select entity
+#include "filament_motor_select.h" // Include to call methods on select entity
 #include "crc.h"
 #include <string.h>
 #include <stdio.h>
@@ -294,8 +296,8 @@ void BambuBus_init()
             slot.temperature_max = 240;                        // 默认最高温度
             strncpy(slot.name, "PETG", sizeof(slot.name) - 1); // 默认名称
             slot.name[sizeof(slot.name) - 1] = '\0';
-            slot.meters = 0;      // 默认使用长度
-                                  // slot.statu = online; // 默认状态
+            slot.meters = 0;     // 默认使用长度
+                                 // slot.statu = online; // 默认状态
             slot.statu = online; // 默认状态
 
             slot.motion_set = idle; // 默认运动状态
@@ -1142,7 +1144,7 @@ void BambuBus::setup()
     if (this->de_pin_ != nullptr)
     {
         // GPIOBinaryOutput* 的 setup 通常由框架自动调用
-        this->de_pin_->setup(); // 可能不需要
+        this->de_pin_->setup();              // 可能不需要
         this->de_pin_->digital_write(false); // <<<--- 使用 turn_off() 设置初始状态 (接收)
         // vvv--- 获取引脚号需要通过 get_pin() 方法 ---vvv
         ESP_LOGI(TAG, "DE Pin (GPIOBinaryOutput) configured on GPIO%d. Initial state: OFF (Receive)", this->de_pin_->dump_summary());
@@ -1212,4 +1214,34 @@ void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
         this->de_pin_->digital_write(false); // 禁用发送 (低电平)
         ESP_LOGV(TAG, "DE pin set LOW.");
     }
+}
+
+void BambuBus::set_current_motion_state(_filament_motion_state_set state) {
+  if (this->current_motion_state_ != state) {
+    ESP_LOGD(TAG, "Motion state changed from HA: %d", (int)state);
+    this->current_motion_state_ = state;
+    // Here you would apply the state change to your hardware/logic
+    publish_motion_state_to_ha(); // Confirm state back to HA
+  }
+}
+
+void BambuBus::set_current_motor_index(FilamentMotionMotorIndex index) {
+  if (this->current_motor_index_ != index) {
+    ESP_LOGD(TAG, "Motor index changed from HA: %d", (int)index);
+    this->current_motor_index_ = index;
+    // Apply change to hardware/logic
+    publish_motor_index_to_ha(); // Confirm state back to HA
+  }
+}
+
+void BambuBus::publish_motion_state_to_ha() {
+  if (this->state_select_entity_) {
+    this->state_select_entity_->publish_state_from_parent(this->current_motion_state_);
+  }
+}
+
+void BambuBus::publish_motor_index_to_ha() {
+  if (this->motor_select_entity_) {
+    this->motor_select_entity_->publish_state_from_parent(this->current_motor_index_);
+  }
 }
