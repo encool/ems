@@ -12,13 +12,16 @@
 
 #define Bambubus_version 5
 
+// 前向声明移到 namespace esphome 内
+namespace esphome {
+    class FilamentStateSelect;
+    class FilamentMotorSelect;
+} // namespace esphome
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-    class FilamentStateSelect;
-    class FilamentMotorSelect;
 
     static constexpr const char *TAG = "BambuBus"; // 必须这样定义
 
