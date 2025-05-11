@@ -1014,249 +1014,306 @@ void send_for_Set_filament(unsigned char *buf, int length)
     Bambubus_set_need_to_save();
 }
 
-namespace esphome {
-
-package_type BambuBus::BambuBus_run()
+namespace esphome
 {
-    package_type stu = BambuBus_package_NONE;
-    static uint64_t time_set = 0;
-    static uint64_t time_motion = 0;
 
-    uint32_t timex = esphome::millis(); // 使用 ESPHome 的时间函数
-
-    // uint64_t timex = get_time64();
-
-    /*for (auto i : data_save.filament)
+    package_type BambuBus::BambuBus_run()
     {
-        i->motion_set = idle;
-    }*/
+        package_type stu = BambuBus_package_NONE;
+        static uint64_t time_set = 0;
+        static uint64_t time_motion = 0;
 
-    if (BambuBus_have_data)
-    {
-        int data_length = BambuBus_have_data;
-        BambuBus_have_data = 0;
-        need_debug = false;
+        uint32_t timex = esphome::millis(); // 使用 ESPHome 的时间函数
 
-        stu = get_packge_type(buf_X, data_length); // have_data
-        switch (stu)
+        // uint64_t timex = get_time64();
+
+        /*for (auto i : data_save.filament)
         {
-        case BambuBus_package_heartbeat:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_heartbeat)...");
-            time_set = timex + 1000;
-            break;
-        case BambuBus_package_filament_motion_short:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_short)...");
-            send_for_Cxx(buf_X, data_length);
-            break;
-        case BambuBus_package_filament_motion_long:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_long)...");
-            send_for_Dxx(buf_X, data_length);
-            time_motion = timex + 1000;
-            break;
-        case BambuBus_package_online_detect:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_online_detect)...");
-            send_for_Fxx(buf_X, data_length);
-            break;
-        case BambuBus_package_REQx6:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_REQx6)...");
-            // send_for_REQx6(buf_X, data_length);
-            break;
-        case BambuBus_long_package_MC_online:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_long_package_MC_online)...");
-            send_for_long_packge_MC_online(buf_X, data_length);
-            break;
-        case BambuBus_longe_package_filament:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_longe_package_filament)...");
-            send_for_long_packge_filament(buf_X, data_length);
-            break;
-        case BambuBus_long_package_version:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_long_package_version)...");
-            send_for_long_packge_version(buf_X, data_length);
-            break;
-        case BambuBus_package_NFC_detect:
-            ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_NFC_detect)...");
-            // send_for_NFC_detect(buf_X, data_length);
-            break;
-        case BambuBus_package_set_filament:
-            ESP_LOGI(TAG, "Processing package (Type: BambuBus_package_set_filament)...");
-            send_for_Set_filament(buf_X, data_length);
-            break;
-        default:
-            // It's also good practice to log the default case, especially if it represents an unknown or unhandled package type.
-            // You might want to use ESP_LOGW (Warning) or ESP_LOGE (Error) here depending on how unexpected this is.
-            // For consistency with the request to just add logs, using ESP_LOGD here.
-            // Consider logging the actual value that caused the default case if 'package_type' is accessible.
-            // ESP_LOGW(TAG, "Processing package (Type: Unknown/Default, Value: %d)...", package_type);
-            ESP_LOGW(TAG, "Processing package (Type: Unhandled/Default)...");
-            break;
+            i->motion_set = idle;
+        }*/
+
+        if (BambuBus_have_data)
+        {
+            int data_length = BambuBus_have_data;
+            BambuBus_have_data = 0;
+            need_debug = false;
+
+            stu = get_packge_type(buf_X, data_length); // have_data
+            switch (stu)
+            {
+            case BambuBus_package_heartbeat:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_heartbeat)...");
+                time_set = timex + 1000;
+                break;
+            case BambuBus_package_filament_motion_short:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_short)...");
+                send_for_Cxx(buf_X, data_length);
+                break;
+            case BambuBus_package_filament_motion_long:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_long)...");
+                send_for_Dxx(buf_X, data_length);
+                time_motion = timex + 1000;
+                break;
+            case BambuBus_package_online_detect:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_online_detect)...");
+                send_for_Fxx(buf_X, data_length);
+                break;
+            case BambuBus_package_REQx6:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_REQx6)...");
+                // send_for_REQx6(buf_X, data_length);
+                break;
+            case BambuBus_long_package_MC_online:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_long_package_MC_online)...");
+                send_for_long_packge_MC_online(buf_X, data_length);
+                break;
+            case BambuBus_longe_package_filament:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_longe_package_filament)...");
+                send_for_long_packge_filament(buf_X, data_length);
+                break;
+            case BambuBus_long_package_version:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_long_package_version)...");
+                send_for_long_packge_version(buf_X, data_length);
+                break;
+            case BambuBus_package_NFC_detect:
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_NFC_detect)...");
+                // send_for_NFC_detect(buf_X, data_length);
+                break;
+            case BambuBus_package_set_filament:
+                ESP_LOGI(TAG, "Processing package (Type: BambuBus_package_set_filament)...");
+                send_for_Set_filament(buf_X, data_length);
+                break;
+            default:
+                // It's also good practice to log the default case, especially if it represents an unknown or unhandled package type.
+                // You might want to use ESP_LOGW (Warning) or ESP_LOGE (Error) here depending on how unexpected this is.
+                // For consistency with the request to just add logs, using ESP_LOGD here.
+                // Consider logging the actual value that caused the default case if 'package_type' is accessible.
+                // ESP_LOGW(TAG, "Processing package (Type: Unknown/Default, Value: %d)...", package_type);
+                ESP_LOGW(TAG, "Processing package (Type: Unhandled/Default)...");
+                break;
+            }
         }
-    }
-    if (timex > time_set)
-    {
-        stu = BambuBus_package_ERROR; // offline
-    }
-    if (timex > time_motion)
-    {
-        // set_filament_motion(get_now_filament_num(),idle);
-        // for (auto i : data_save.filament)
-        // {
-        //     i->motion_set = idle;
-        // }
-
-        for (auto i : data_save.filament) // i 是 flash_save_struct::filament数组中的一个元素，即 _filament[4]
+        if (timex > time_set)
         {
-            // i->motion_set = idle; // 错误: i 不是指针，且 filament 是二维数组 data_save.filament[ams_idx][slot_idx]
-            // 正确的遍历方式：
-            for (auto &ams_slots : data_save.filament)
-            { // ams_slots 是 _filament[4]
-                for (auto &slot : ams_slots)
-                { // slot 是 _filament
-                    slot.motion_set = idle;
+            stu = BambuBus_package_ERROR; // offline
+        }
+        if (timex > time_motion)
+        {
+            // set_filament_motion(get_now_filament_num(),idle);
+            // for (auto i : data_save.filament)
+            // {
+            //     i->motion_set = idle;
+            // }
+
+            for (auto i : data_save.filament) // i 是 flash_save_struct::filament数组中的一个元素，即 _filament[4]
+            {
+                // i->motion_set = idle; // 错误: i 不是指针，且 filament 是二维数组 data_save.filament[ams_idx][slot_idx]
+                // 正确的遍历方式：
+                for (auto &ams_slots : data_save.filament)
+                { // ams_slots 是 _filament[4]
+                    for (auto &slot : ams_slots)
+                    { // slot 是 _filament
+                        slot.motion_set = idle;
+                    }
                 }
             }
         }
-    }
-    if (Bambubus_need_to_save)
-    {
-        Bambubus_save();
-        time_set = timex + 1000;
-        Bambubus_need_to_save = false;
-    }
-    // HAL_UART_Transmit(&use_Serial.handle,&s,1,1000);
-
-    // NFC_detect_run();
-    return stu;
-}
-
-void BambuBus::setup()
-{
-    ESP_LOGI(TAG, "Setup started");
-
-    g_bambu_bus_instance = this;
-
-    const char *preference_key = "bambubus_storage_001"; // 选择一个对您的组件来说唯一的键
-
-    // 初始化 ESPPreferenceObject
-    // 使用 get_object_id_hash() 来为每个组件实例创建唯一的key
-    // 第二个参数 false 表示 autosave=false，需要显式调用 save()
-    this->pref_ = esphome::global_preferences->make_preference<flash_save_struct>(esphome::fnv1_hash(preference_key));
-    this->mark_initialized_(); // 标记 preferences 对象已初始化并可用
-
-    // 设置 DE 引脚 (如果已配置)
-    if (this->de_pin_ != nullptr)
-    {
-        // GPIOBinaryOutput* 的 setup 通常由框架自动调用
-        this->de_pin_->setup();              // 可能不需要
-        this->de_pin_->digital_write(false); // <<<--- 使用 turn_off() 设置初始状态 (接收)
-        // vvv--- 获取引脚号需要通过 get_pin() 方法 ---vvv
-        ESP_LOGI(TAG, "DE Pin (GPIOBinaryOutput) configured on GPIO%d. Initial state: OFF (Receive)", this->de_pin_->dump_summary());
-        // ^^^--- 注意是 de_pin_->get_pin()->get_pin() ---^^^
-    }
-    else
-    {
-        ESP_LOGI(TAG, "DE Pin not configured.");
-    }
-
-    BambuBus_init();
-
-
-        // 作为简单的开始，先用默认值发布：
-    this->current_motion_state_ = idle; // 或者你希望的默认值
-    this->current_motor_index_ = FilamentMotionMotorIndex::MOTOR_1; // 或者你希望的默认值
-
-    ESP_LOGD(TAG, "Initial motion state: %d", (int)this->current_motion_state_);
-    ESP_LOGD(TAG, "Initial motor index: %d", (int)this->current_motor_index_);
-    publish_motion_state_to_ha();
-    publish_motor_index_to_ha();
-
-    ESP_LOGI(TAG, "Setup ended");
-}
-
-void BambuBus::loop()
-{
-    static uint8_t buf[1000];
-    static size_t pos = 0;
-
-    // Read incoming data
-    while (available())
-    {
-        // ESP_LOGI(BambuBus::TAG, "data available");
-        uint8_t c;
-        if (read_byte(&c))
+        if (Bambubus_need_to_save)
         {
-            RX_IRQ(c);
+            Bambubus_save();
+            time_set = timex + 1000;
+            Bambubus_need_to_save = false;
+        }
+        // HAL_UART_Transmit(&use_Serial.handle,&s,1,1000);
+
+        // NFC_detect_run();
+        return stu;
+    }
+    uint32_t last_state_change_time_ = 0;
+    uint32_t last_motor_change_time_ = 0;
+    void BambuBus::setup()
+    {
+        ESP_LOGI(TAG, "Setup started");
+
+        g_bambu_bus_instance = this;
+
+        const char *preference_key = "bambubus_storage_001"; // 选择一个对您的组件来说唯一的键
+
+        // 初始化 ESPPreferenceObject
+        // 使用 get_object_id_hash() 来为每个组件实例创建唯一的key
+        // 第二个参数 false 表示 autosave=false，需要显式调用 save()
+        this->pref_ = esphome::global_preferences->make_preference<flash_save_struct>(esphome::fnv1_hash(preference_key));
+        this->mark_initialized_(); // 标记 preferences 对象已初始化并可用
+
+        // 设置 DE 引脚 (如果已配置)
+        if (this->de_pin_ != nullptr)
+        {
+            // GPIOBinaryOutput* 的 setup 通常由框架自动调用
+            this->de_pin_->setup();              // 可能不需要
+            this->de_pin_->digital_write(false); // <<<--- 使用 turn_off() 设置初始状态 (接收)
+            // vvv--- 获取引脚号需要通过 get_pin() 方法 ---vvv
+            ESP_LOGI(TAG, "DE Pin (GPIOBinaryOutput) configured on GPIO%d. Initial state: OFF (Receive)", this->de_pin_->dump_summary());
+            // ^^^--- 注意是 de_pin_->get_pin()->get_pin() ---^^^
+        }
+        else
+        {
+            ESP_LOGI(TAG, "DE Pin not configured.");
+        }
+
+        BambuBus_init();
+
+        // for debug
+        // 初始化计时器
+        last_state_change_time_ = millis();
+        last_motor_change_time_ = millis();
+
+        // 发布初始状态 (如果还没做的话)
+        publish_motion_state_to_ha();
+        publish_motor_index_to_ha();
+
+        ESP_LOGI(TAG, "Setup ended");
+    }
+
+    void BambuBus::loop()
+    {
+        static uint8_t buf[1000];
+        static size_t pos = 0;
+
+        // Read incoming data
+        while (available())
+        {
+            // ESP_LOGI(BambuBus::TAG, "data available");
+            uint8_t c;
+            if (read_byte(&c))
+            {
+                RX_IRQ(c);
+            }
+        }
+
+        // Process received data
+        BambuBus_run();
+
+        // for debug
+        uint32_t current_time = millis();
+
+        // 每隔一段时间改变 motion state (例如，每 10 秒)
+        if (current_time - last_state_change_time_ > 10000)
+        { // 10000 ms = 10 seconds
+            last_state_change_time_ = current_time;
+
+            // 循环改变状态：idle -> need_send_out -> on_use -> need_pull_back -> idle ...
+            switch (this->current_motion_state_)
+            {
+            case idle:
+                this->current_motion_state_ = need_send_out;
+                break;
+            case need_send_out:
+                this->current_motion_state_ = on_use;
+                break;
+            case on_use:
+                this->current_motion_state_ = need_pull_back;
+                break;
+            case need_pull_back:
+                this->current_motion_state_ = idle;
+                break;
+            default:
+                this->current_motion_state_ = idle;
+            }
+            ESP_LOGI(TAG, "Simulated motion state change to: %d", (int)this->current_motion_state_);
+            publish_motion_state_to_ha(); // 通知 HA
+        }
+
+        // 每隔一段时间改变 motor index (例如，每 15 秒)
+        if (current_time - last_motor_change_time_ > 15000)
+        { // 15000 ms = 15 seconds
+            last_motor_change_time_ = current_time;
+
+            // 循环改变 motor index: 1 -> 2 -> 3 -> 4 -> 1 ...
+            int current_motor_int = static_cast<int>(this->current_motor_index_);
+            current_motor_int++;
+            if (current_motor_int > 4)
+            {
+                current_motor_int = 1;
+            }
+            this->current_motor_index_ = static_cast<FilamentMotionMotorIndex>(current_motor_int);
+
+            ESP_LOGI(TAG, "Simulated motor index change to: %d", (int)this->current_motor_index_);
+            publish_motor_index_to_ha(); // 通知 HA
         }
     }
 
-    // Process received data
-    BambuBus_run();
-}
-
-// 用于带 DE 控制发送的新函数
-void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
-{
-    if (this->de_pin_ != nullptr)
+    // 用于带 DE 控制发送的新函数
+    void BambuBus::send_uart_with_de(const uint8_t *data, uint16_t length)
     {
-        this->de_pin_->digital_write(true); // 激活发送 (高电平)
-        // 可能需要极短的延迟确保收发器状态切换 (通常非常快)
-        esphome::delayMicroseconds(10); // 示例: 5 微秒，根据硬件调整
-        ESP_LOGV(TAG, "DE pin set HIGH.");
+        if (this->de_pin_ != nullptr)
+        {
+            this->de_pin_->digital_write(true); // 激活发送 (高电平)
+            // 可能需要极短的延迟确保收发器状态切换 (通常非常快)
+            esphome::delayMicroseconds(10); // 示例: 5 微秒，根据硬件调整
+            ESP_LOGV(TAG, "DE pin set HIGH.");
+        }
+        else
+        {
+            ESP_LOGV(TAG, "DE pin not configured, sending without DE control.");
+        }
+
+        ESP_LOGD(TAG, "Sending %d bytes...", length);
+        // 使用 format_hex_pretty 打印准备发送的数据
+        if (true)
+        { // 或者使用更精细的日志级别控制
+            ESP_LOGD(TAG, "  %s", esphome::format_hex_pretty(data, length).c_str());
+        }
+        this->write_array(data, length);
+
+        // 等待发送完成 - 非常重要!
+        this->flush();
+        ESP_LOGV(TAG, "UART flush complete.");
+
+        // 在 flush() 之后再禁用 DE
+        if (this->de_pin_ != nullptr)
+        {
+            // 在禁用 DE 之前可能需要短暂延迟，确保最后一个停止位完全发出
+            esphome::delayMicroseconds(10);      // 示例: 5 微秒，根据硬件调整
+            this->de_pin_->digital_write(false); // 禁用发送 (低电平)
+            ESP_LOGV(TAG, "DE pin set LOW.");
+        }
     }
-    else
+
+    void BambuBus::set_current_motion_state(_filament_motion_state_set state)
     {
-        ESP_LOGV(TAG, "DE pin not configured, sending without DE control.");
+        if (this->current_motion_state_ != state)
+        {
+            ESP_LOGD(TAG, "Motion state changed from HA: %d", (int)state);
+            this->current_motion_state_ = state;
+            // Here you would apply the state change to your hardware/logic
+            publish_motion_state_to_ha(); // Confirm state back to HA
+        }
     }
 
-    ESP_LOGD(TAG, "Sending %d bytes...", length);
-    // 使用 format_hex_pretty 打印准备发送的数据
-    if (true)
-    { // 或者使用更精细的日志级别控制
-        ESP_LOGD(TAG, "  %s", esphome::format_hex_pretty(data, length).c_str());
-    }
-    this->write_array(data, length);
-
-    // 等待发送完成 - 非常重要!
-    this->flush();
-    ESP_LOGV(TAG, "UART flush complete.");
-
-    // 在 flush() 之后再禁用 DE
-    if (this->de_pin_ != nullptr)
+    void BambuBus::set_current_motor_index(FilamentMotionMotorIndex index)
     {
-        // 在禁用 DE 之前可能需要短暂延迟，确保最后一个停止位完全发出
-        esphome::delayMicroseconds(10);      // 示例: 5 微秒，根据硬件调整
-        this->de_pin_->digital_write(false); // 禁用发送 (低电平)
-        ESP_LOGV(TAG, "DE pin set LOW.");
+        if (this->current_motor_index_ != index)
+        {
+            ESP_LOGD(TAG, "Motor index changed from HA: %d", (int)index);
+            this->current_motor_index_ = index;
+            // Apply change to hardware/logic
+            publish_motor_index_to_ha(); // Confirm state back to HA
+        }
     }
-}
 
-void BambuBus::set_current_motion_state(_filament_motion_state_set state) {
-  if (this->current_motion_state_ != state) {
-    ESP_LOGD(TAG, "Motion state changed from HA: %d", (int)state);
-    this->current_motion_state_ = state;
-    // Here you would apply the state change to your hardware/logic
-    publish_motion_state_to_ha(); // Confirm state back to HA
-  }
-}
+    void BambuBus::publish_motion_state_to_ha()
+    {
+        if (this->state_select_entity_)
+        {
+            this->state_select_entity_->publish_state_from_parent(this->current_motion_state_);
+        }
+    }
 
-void BambuBus::set_current_motor_index(FilamentMotionMotorIndex index) {
-  if (this->current_motor_index_ != index) {
-    ESP_LOGD(TAG, "Motor index changed from HA: %d", (int)index);
-    this->current_motor_index_ = index;
-    // Apply change to hardware/logic
-    publish_motor_index_to_ha(); // Confirm state back to HA
-  }
-}
-
-void BambuBus::publish_motion_state_to_ha() {
-  if (this->state_select_entity_) {
-    this->state_select_entity_->publish_state_from_parent(this->current_motion_state_);
-  }
-}
-
-void BambuBus::publish_motor_index_to_ha() {
-  if (this->motor_select_entity_) {
-    this->motor_select_entity_->publish_state_from_parent(this->current_motor_index_);
-  }
-}
+    void BambuBus::publish_motor_index_to_ha()
+    {
+        if (this->motor_select_entity_)
+        {
+            this->motor_select_entity_->publish_state_from_parent(this->current_motor_index_);
+        }
+    }
 
 }
