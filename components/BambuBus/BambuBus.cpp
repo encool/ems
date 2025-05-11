@@ -227,29 +227,43 @@ void BambuBus::save_preferences() {
 void BambuBus::initialize_default_data() {
     // Simplified initialization based on original BambuBus_init
     // Color initializations (example for first AMS)
-    this->persistent_data_.filament[0][0] = {"GFG00", 0xFF, 0x00, 0x00, 0xFF, 220, 240, "PETG", 0, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    this->persistent_data_.filament[0][1] = {"GFG00", 0x00, 0xFF, 0x00, 0xFF, 220, 240, "PETG", 0, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    this->persistent_data_.filament[0][2] = {"GFG00", 0x00, 0x00, 0xFF, 0xFF, 220, 240, "PETG", 0, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    this->persistent_data_.filament[0][3] = {"GFG00", 0x88, 0x88, 0x88, 0xFF, 220, 240, "PETG", 0, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    // ... (Initialize for other AMS units/slots as per original if needed) ...
+    // Explicitly create a FilamentData temporary object for assignment
+    this->persistent_data_.filament[0][0] = FilamentData{"GFG00", 0xFF, 0x00, 0x00, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
+    this->persistent_data_.filament[0][1] = FilamentData{"GFG00", 0x00, 0xFF, 0x00, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
+    this->persistent_data_.filament[0][2] = FilamentData{"GFG00", 0x00, 0x00, 0xFF, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
+    this->persistent_data_.filament[0][3] = FilamentData{"GFG00", 0x88, 0x88, 0x88, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
+    
     // For all slots:
     for (int i = 0; i < MAX_AMS_COUNT; ++i) {
         for (int j = 0; j < MAX_SLOTS_PER_AMS; ++j) {
             // If not set by specific colors above, apply generic defaults
-            if (i==0 && j<4) { /*skip already set */} else {
-                 this->persistent_data_.filament[i][j] = {"GFG00", 0xCC, 0xCC, 0xCC, 0xFF, 220, 240, "PETG", 0, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
+            if (i == 0 && j < 4) { 
+                // Already initialized above, but the general defaults below will re-apply some values.
+                // This is fine if the values are the same or intended to be overwritten.
+            } else {
+                 // Generic default for other AMS units/slots
+                 this->persistent_data_.filament[i][j] = FilamentData{"GFG00", 0xCC, 0xCC, 0xCC, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
             }
-            // General defaults for all from original loop
+
+            // The following individual assignments will override parts of the FilamentData object
+            // assigned above or set them if they were default-initialized.
+            // This part of your logic can remain, ensuring specific fields are set as intended
+            // after the initial bulk assignment.
             strncpy(this->persistent_data_.filament[i][j].id, "GFG00", sizeof(this->persistent_data_.filament[i][j].id) - 1);
             this->persistent_data_.filament[i][j].id[sizeof(this->persistent_data_.filament[i][j].id) - 1] = '\0';
+            
+            // If the FilamentData temporary already set these, some of these are redundant,
+            // but harmless. For example, color_a, temps, name, meters, status, motion_set are
+            // likely already set by the FilamentData{...} line.
             this->persistent_data_.filament[i][j].color_a = 0xFF;
             this->persistent_data_.filament[i][j].temperature_min = 220;
             this->persistent_data_.filament[i][j].temperature_max = 240;
             strncpy(this->persistent_data_.filament[i][j].name, "PETG", sizeof(this->persistent_data_.filament[i][j].name) - 1);
             this->persistent_data_.filament[i][j].name[sizeof(this->persistent_data_.filament[i][j].name) - 1] = '\0';
-            this->persistent_data_.filament[i][j].meters = 0;
-            this->persistent_data_.filament[i][j].status = FILAMENT_ONLINE; // Default to online
+            this->persistent_data_.filament[i][j].meters = 0.0f; 
+            this->persistent_data_.filament[i][j].status = FILAMENT_ONLINE; 
             this->persistent_data_.filament[i][j].motion_set = FILAMENT_MOTION_IDLE;
+            // pressure will take its value from the FilamentData{...} assignment
         }
     }
     this->persistent_data_.now_filament_num = 0;
