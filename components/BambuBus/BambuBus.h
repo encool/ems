@@ -146,9 +146,8 @@ public:
     // Pointers to the select entities to update them
     FilamentStateSelect *state_select_entity_{nullptr};
     FilamentMotorSelect *motor_select_entity_{nullptr};
-    // Methods to set the states (called by select entities)
-    void set_current_motion_state(_filament_motion_state_set state);
-    void set_current_motor_index(FilamentMotionMotorIndex index);
+
+    void set_motor_state(unsigned char AMS_num, unsigned char read_num, _filament_motion_state_set motor_state);
 
     // Getters (could be used by select entities for initial state, or by other parts)
     _filament_motion_state_set get_current_motion_state() const { return current_motion_state_; }
@@ -160,6 +159,9 @@ public:
 
 private:
     bool need_debug = true;
+        // Methods to set the states (called by select entities)
+    void set_current_motion_state(_filament_motion_state_set state);
+    void set_current_motor_index(FilamentMotionMotorIndex index);
 };
 
 }

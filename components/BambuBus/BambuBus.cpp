@@ -560,30 +560,42 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
     {
         if (read_num < 4)
         {
+            _filament_motion_state_set target_state;
             if ((statu_flags == 0x03) && (fliment_motion_flag == 0x3F)) // 03 3F
             {
                 data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
                 data_save.filament[AMS_num][read_num].motion_set = need_pull_back;
+                target_state = need_pull_back;
             }
             else if ((statu_flags == 0x03) && (fliment_motion_flag == 0xBF)) // 03 BF
             {
-
                 data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
                 data_save.filament[AMS_num][read_num].motion_set = need_send_out;
+                target_state = need_send_out;
             }
             else
             {
                 if (data_save.filament[AMS_num][read_num].motion_set == need_pull_back)
+                {
                     data_save.filament[AMS_num][read_num].motion_set = idle;
+                    target_state = idle;
+                }
                 else if (data_save.filament[AMS_num][read_num].motion_set == need_send_out)
+                {
                     data_save.filament[AMS_num][read_num].motion_set = on_use;
+                    target_state = on_use;
+                }
             }
+            ESP_LOGI(TAG, "AMS lite: Processing specific slot %u for AMS %u target_state %s", read_num, AMS_num, target_state);
+            g_bambu_bus_instance->set_motor_state(AMS_num, read_num, target_state);
         }
         else if (read_num == 0xFF)
         {
+            ESP_LOGI(TAG, "AMS lite: Processing specific all slot to idle slot %u for AMS %u", read_num, AMS_num);
             for (int i = 0; i < 4; i++)
             {
                 data_save.filament[AMS_num][i].motion_set = idle;
+                g_bambu_bus_instance->set_motor_state(AMS_num, i, idle);
             }
         }
     }
@@ -591,8 +603,10 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
     {
         if ((read_num != 0xFF) && (read_num < 4))
         {
+            ESP_LOGI(TAG, "AMS lite: Processing specific slot %u for AMS %u target_state %s", read_num, AMS_num, on_use);
             data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
             data_save.filament[AMS_num][read_num].motion_set = on_use;
+            g_bambu_bus_instance->set_motor_state(AMS_num, read_num, on_use);
         }
     }
     else
@@ -1232,6 +1246,36 @@ namespace esphome
             this->de_pin_->digital_write(false); // 禁用发送 (低电平)
             ESP_LOGV(TAG, "DE pin set LOW.");
         }
+    }
+
+    void BambuBus::set_motor_state(unsigned char AMS_num, unsigned char read_num, _filament_motion_state_set motor_state)
+    {
+        FilamentMotionMotorIndex motorIndexToSet;
+
+        switch (read_num)
+        {
+        case 1:
+            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_1;
+            break;
+        case 2:
+            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_2;
+            break;
+        case 3:
+            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_3;
+            break;
+        case 4:
+            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_4;
+            break;
+        default:
+            ESP_LOGE(TAG, "set_motor_state: Invalid motor index value received: %u. Aborting state set.", read_num);
+            return; // Exit the function immediately
+        }
+
+        // If we reach here, read_num was valid and motorIndexToSet is assigned.
+        this->set_current_motor_index(motorIndexToSet);
+        this->set_current_motion_state(motor_state);
+        ESP_LOGD(TAG, "set_motor_state: Successfully set motor index to %u and motion state to %d",
+                 read_num, (int)motor_state);
     }
 
     void BambuBus::set_current_motion_state(_filament_motion_state_set state)
