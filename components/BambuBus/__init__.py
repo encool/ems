@@ -5,6 +5,8 @@ from esphome.const import CONF_ID
 # vvv--- 导入 gpio 相关的验证 ---vvv
 # vvv--- 导入 gpio 验证函数 ---vvv
 from esphome.pins import gpio_output_pin_schema
+from esphome.components import select as esphome_select_module # 导入select模块并重命名以防冲突
+
 DEPENDENCIES = ['uart', 'output', 'select']
 
 # empty_uart_component_ns = cg.esphome_ns.namespace('bambu_bus')
@@ -25,8 +27,8 @@ CONF_DE_PIN = 'de_pin'
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(EmptyUARTComponent),
     cv.Optional(CONF_DE_PIN): gpio_output_pin_schema,
-    cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(FilamentStateSelect),
-    cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(FilamentMotorSelect),
+    cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(esphome_select_module.Select),
+    cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(esphome_select_module.Select),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 def to_code(config):
