@@ -1159,6 +1159,11 @@ void BambuBus::setup()
 
     BambuBus_init();
 
+
+        // 作为简单的开始，先用默认值发布：
+    this->current_motion_state_ = idle; // 或者你希望的默认值
+    this->current_motor_index_ = FilamentMotionMotorIndex::MOTOR_1; // 或者你希望的默认值
+
     ESP_LOGD(TAG, "Initial motion state: %d", (int)this->current_motion_state_);
     ESP_LOGD(TAG, "Initial motor index: %d", (int)this->current_motor_index_);
     publish_motion_state_to_ha();
