@@ -3,6 +3,8 @@
 #include "esphome/components/select/select.h"
 #include "BambuBus.h" // For enum and MyFilamentController class
 
+namespace esphome {
+
 class FilamentMotorSelect : public esphome::select::Select, public esphome::Component {
  public:
   explicit FilamentMotorSelect(BambuBus *parent) : parent_(parent) {}
@@ -50,3 +52,5 @@ class FilamentMotorSelect : public esphome::select::Select, public esphome::Comp
  protected:
   BambuBus *parent_;
 };
+
+}

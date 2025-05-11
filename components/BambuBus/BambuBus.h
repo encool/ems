@@ -110,6 +110,8 @@ inline esphome::optional<_filament_motion_state_set> string_to_filament_state(co
     return {}; // esphome::optional is empty
 }
 
+namespace esphome {
+
 class BambuBus : public esphome::Component, public esphome::uart::UARTDevice
 {
 protected:
@@ -157,6 +159,7 @@ private:
     bool need_debug = true;
 };
 
+}
 // ... 其他类/函数声明 ...
 
 // 声明全局 CRC 对象 (不要在这里初始化)

@@ -3,7 +3,7 @@
 #include "esphome/components/select/select.h"
 #include "BambuBus.h" // For enum and MyFilamentController class
 
-
+namespace esphome {
 
 class FilamentStateSelect : public esphome::select::Select, public esphome::Component {
  public:
@@ -57,3 +57,4 @@ class FilamentStateSelect : public esphome::select::Select, public esphome::Comp
   BambuBus *parent_;
 };
 
+}
