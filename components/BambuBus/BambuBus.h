@@ -110,7 +110,7 @@ inline esphome::optional<_filament_motion_state_set> string_to_filament_state(co
     return {}; // esphome::optional is empty
 }
 
-class BambuBus : public esphome::Component, public esphome::uart::UARTDevice, public esphome::select::Select
+class BambuBus : public esphome::Component, public esphome::uart::UARTDevice
 {
 protected:
     esphome::GPIOPin *de_pin_{nullptr}; // <<<--- 添加 DE 引脚成员变量
