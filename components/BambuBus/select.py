@@ -62,7 +62,7 @@ CONFIG_SCHEMA = cv.All(
         cv.Required(CONF_PARENT_CONTROLLER_ID): cv.use_id(BambuBusController),
         
         # CONF_ID：暂时只验证它存在且是个有效的 ID 字符串
-        # cv.Required(CONF_ID): cv.valid_id_name, # 或者 cv.string, cv.declare_id 会处理实际的 ID 对象创建
+        cv.Required(CONF_ID): cv.string, # 或者 cv.string, cv.declare_id 会处理实际的 ID 对象创建
     }).extend(cv.COMPONENT_SCHEMA), # COMPONENT_SCHEMA 通常是空的或处理 setup_priority 等
 
     # 2. 应用 final_schema_processor 来根据类型正确声明/修改 CONF_ID
