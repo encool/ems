@@ -5,7 +5,7 @@ from esphome.const import CONF_ID
 # vvv--- 导入 gpio 相关的验证 ---vvv
 # vvv--- 导入 gpio 验证函数 ---vvv
 from esphome.pins import gpio_output_pin_schema
-DEPENDENCIES = ['uart', 'output']
+DEPENDENCIES = ['uart', 'output', 'select']
 
 # empty_uart_component_ns = cg.esphome_ns.namespace('bambu_bus')
 # EmptyUARTComponent = empty_uart_component_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
