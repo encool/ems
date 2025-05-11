@@ -224,51 +224,97 @@ void BambuBus::save_preferences() {
     }
 }
 
-void BambuBus::initialize_default_data() {
-    // Simplified initialization based on original BambuBus_init
-    // Color initializations (example for first AMS)
-    // Explicitly create a FilamentData temporary object for assignment
-    this->persistent_data_.filament[0][0] = FilamentData{"GFG00", 0xFF, 0x00, 0x00, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    this->persistent_data_.filament[0][1] = FilamentData{"GFG00", 0x00, 0xFF, 0x00, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    this->persistent_data_.filament[0][2] = FilamentData{"GFG00", 0x00, 0x00, 0xFF, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    this->persistent_data_.filament[0][3] = FilamentData{"GFG00", 0x88, 0x88, 0x88, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-    
-    // For all slots:
-    for (int i = 0; i < MAX_AMS_COUNT; ++i) {
-        for (int j = 0; j < MAX_SLOTS_PER_AMS; ++j) {
-            // If not set by specific colors above, apply generic defaults
-            if (i == 0 && j < 4) { 
-                // Already initialized above, but the general defaults below will re-apply some values.
-                // This is fine if the values are the same or intended to be overwritten.
-            } else {
-                 // Generic default for other AMS units/slots
-                 this->persistent_data_.filament[i][j] = FilamentData{"GFG00", 0xCC, 0xCC, 0xCC, 0xFF, 220, 240, "PETG", 0.0f, FILAMENT_ONLINE, FILAMENT_MOTION_IDLE, 0};
-            }
+// In BambuBus.cpp
 
-            // The following individual assignments will override parts of the FilamentData object
-            // assigned above or set them if they were default-initialized.
-            // This part of your logic can remain, ensuring specific fields are set as intended
-            // after the initial bulk assignment.
-            strncpy(this->persistent_data_.filament[i][j].id, "GFG00", sizeof(this->persistent_data_.filament[i][j].id) - 1);
-            this->persistent_data_.filament[i][j].id[sizeof(this->persistent_data_.filament[i][j].id) - 1] = '\0';
+void BambuBus::initialize_default_data() {
+    ESP_LOGI(TAG, "Initializing persistent_data_ with default values (original logic).");
+
+    // 这部分直接从原始的 BambuBus_init 复制并修改
+    // 注意：现在操作的是 this->persistent_data_ 而不是全局的 data_save
+
+    // 颜色初始化部分 (与原始代码完全一致，只是目标是 this->persistent_data_.filament)
+    this->persistent_data_.filament[0][0].color_r = 0xFF;
+    this->persistent_data_.filament[0][0].color_g = 0x00;
+    this->persistent_data_.filament[0][0].color_b = 0x00;
+    this->persistent_data_.filament[0][1].color_r = 0x00;
+    this->persistent_data_.filament[0][1].color_g = 0xFF;
+    this->persistent_data_.filament[0][1].color_b = 0x00;
+    this->persistent_data_.filament[0][2].color_r = 0x00;
+    this->persistent_data_.filament[0][2].color_g = 0x00;
+    this->persistent_data_.filament[0][2].color_b = 0xFF;
+    this->persistent_data_.filament[0][3].color_r = 0x88;
+    this->persistent_data_.filament[0][3].color_g = 0x88;
+    this->persistent_data_.filament[0][3].color_b = 0x88;
+
+    this->persistent_data_.filament[1][0].color_r = 0xC0;
+    this->persistent_data_.filament[1][0].color_g = 0x20;
+    this->persistent_data_.filament[1][0].color_b = 0x20;
+    this->persistent_data_.filament[1][1].color_r = 0x20;
+    this->persistent_data_.filament[1][1].color_g = 0xC0;
+    this->persistent_data_.filament[1][1].color_b = 0x20;
+    this->persistent_data_.filament[1][2].color_r = 0x20;
+    this->persistent_data_.filament[1][2].color_g = 0x20;
+    this->persistent_data_.filament[1][2].color_b = 0xC0;
+    this->persistent_data_.filament[1][3].color_r = 0x60;
+    this->persistent_data_.filament[1][3].color_g = 0x60;
+    this->persistent_data_.filament[1][3].color_b = 0x60;
+
+    this->persistent_data_.filament[2][0].color_r = 0x80;
+    this->persistent_data_.filament[2][0].color_g = 0x40;
+    this->persistent_data_.filament[2][0].color_b = 0x40;
+    this->persistent_data_.filament[2][1].color_r = 0x40;
+    this->persistent_data_.filament[2][1].color_g = 0x80;
+    this->persistent_data_.filament[2][1].color_b = 0x40;
+    this->persistent_data_.filament[2][2].color_r = 0x40;
+    this->persistent_data_.filament[2][2].color_g = 0x40;
+    this->persistent_data_.filament[2][2].color_b = 0x80;
+    this->persistent_data_.filament[2][3].color_r = 0x40;
+    this->persistent_data_.filament[2][3].color_g = 0x40;
+    this->persistent_data_.filament[2][3].color_b = 0x40;
+
+    this->persistent_data_.filament[3][0].color_r = 0x40;
+    this->persistent_data_.filament[3][0].color_g = 0x20;
+    this->persistent_data_.filament[3][0].color_b = 0x20;
+    this->persistent_data_.filament[3][1].color_r = 0x20;
+    this->persistent_data_.filament[3][1].color_g = 0x40;
+    this->persistent_data_.filament[3][1].color_b = 0x20;
+    this->persistent_data_.filament[3][2].color_r = 0x20;
+    this->persistent_data_.filament[3][2].color_g = 0x20;
+    this->persistent_data_.filament[3][2].color_b = 0x40;
+    this->persistent_data_.filament[3][3].color_r = 0x20;
+    this->persistent_data_.filament[3][3].color_g = 0x20;
+    this->persistent_data_.filament[3][3].color_b = 0x20;
+
+    // 初始化每个耗材槽的默认状态和动态属性 (与原始代码一致，只是目标是 this->persistent_data_.filament)
+    for (int i = 0; i < MAX_AMS_COUNT; ++i) { // 对应原始的 auto &ams_slots : data_save.filament
+        for (int j = 0; j < MAX_SLOTS_PER_AMS; ++j) { // 对应原始的 auto &slot : ams_slots
+            FilamentData &slot_ref = this->persistent_data_.filament[i][j]; // 使用引用方便操作
+
+            strncpy(slot_ref.id, "GFG00", sizeof(slot_ref.id) - 1);
+            slot_ref.id[sizeof(slot_ref.id) - 1] = '\0';
             
-            // If the FilamentData temporary already set these, some of these are redundant,
-            // but harmless. For example, color_a, temps, name, meters, status, motion_set are
-            // likely already set by the FilamentData{...} line.
-            this->persistent_data_.filament[i][j].color_a = 0xFF;
-            this->persistent_data_.filament[i][j].temperature_min = 220;
-            this->persistent_data_.filament[i][j].temperature_max = 240;
-            strncpy(this->persistent_data_.filament[i][j].name, "PETG", sizeof(this->persistent_data_.filament[i][j].name) - 1);
-            this->persistent_data_.filament[i][j].name[sizeof(this->persistent_data_.filament[i][j].name) - 1] = '\0';
-            this->persistent_data_.filament[i][j].meters = 0.0f; 
-            this->persistent_data_.filament[i][j].status = FILAMENT_ONLINE; 
-            this->persistent_data_.filament[i][j].motion_set = FILAMENT_MOTION_IDLE;
-            // pressure will take its value from the FilamentData{...} assignment
+            // slot_ref.color_r, g, b 已经在上面被专门设置了，这里不应覆盖，除非想统一。
+            // 原始代码中，这部分循环是在颜色设置之后，所以它不会覆盖颜色，而是设置其他属性。
+            slot_ref.color_a = 0xFF;
+            slot_ref.temperature_min = 220;
+            slot_ref.temperature_max = 240;
+            strncpy(slot_ref.name, "PETG", sizeof(slot_ref.name) - 1);
+            slot_ref.name[sizeof(slot_ref.name) - 1] = '\0';
+            slot_ref.meters = 0.0f; // 明确为 float
+            slot_ref.status = FILAMENT_ONLINE; // 默认状态
+            slot_ref.motion_set = FILAMENT_MOTION_IDLE; // 默认运动状态
+            slot_ref.pressure = 0; // 初始化 pressure，原始代码中没有明确初始化，但后续会用到
         }
     }
+
+    // 为新初始化的数据设置当前耗材编号、版本和校验和
+    // (版本和校验和在 save_preferences 时设置，这里可以不用显式设置)
     this->persistent_data_.now_filament_num = 0;
-    // Version and check are set during save_preferences()
-    ESP_LOGI(TAG, "Initialized with default filament data.");
+    // this->persistent_data_.version = BAMBUBUS_PROTOCOL_VERSION; // 将在 save 时设置
+    // this->persistent_data_.check = FLASH_DATA_CHECKSUM;         // 将在 save 时设置
+
+    // Bambubus_set_need_to_save(); // 这个调用会在 setup 函数中处理
+    // this->set_need_to_save_preferences(); // setup 中调用 load_preferences 失败后会调用这个
 }
 
 // RX_IRQ logic moved into process_received_byte
