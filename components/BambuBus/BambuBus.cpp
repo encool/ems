@@ -1,6 +1,6 @@
-#include "BambuBus.h"
 #include "filament_state_select.h" // Include to call methods on select entity
 #include "filament_motor_select.h" // Include to call methods on select entity
+#include "BambuBus.h"
 #include "crc.h"
 #include <string.h>
 #include <stdio.h>
