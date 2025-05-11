@@ -1158,6 +1158,12 @@ void BambuBus::setup()
     }
 
     BambuBus_init();
+
+    ESP_LOGD(TAG, "Initial motion state: %d", (int)this->current_motion_state_);
+    ESP_LOGD(TAG, "Initial motor index: %d", (int)this->current_motor_index_);
+    publish_motion_state_to_ha();
+    publish_motor_index_to_ha();
+
     ESP_LOGI(TAG, "Setup ended");
 }
 
