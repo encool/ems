@@ -1014,6 +1014,8 @@ void send_for_Set_filament(unsigned char *buf, int length)
     Bambubus_set_need_to_save();
 }
 
+namespace esphome {
+
 package_type BambuBus::BambuBus_run()
 {
     package_type stu = BambuBus_package_NONE;
@@ -1244,4 +1246,6 @@ void BambuBus::publish_motor_index_to_ha() {
   if (this->motor_select_entity_) {
     this->motor_select_entity_->publish_state_from_parent(this->current_motor_index_);
   }
+}
+
 }
