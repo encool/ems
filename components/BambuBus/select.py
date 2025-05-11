@@ -3,7 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import select
 from esphome.const import CONF_ID, CONF_NAME # CONF_ICON, CONF_ENTITY_CATEGORY etc.
 
-BambuBusComponent = cg.esphome_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
+BambuBusComponent = cg.esphome_ns.class_('BambuBus', cg.Component)
 
 # Forward declare select C++ classes (will be fully defined in select.py)
 FilamentStateSelect = cg.esphome_ns.class_('FilamentStateSelect')
