@@ -26,10 +26,10 @@ CONF_DE_PIN = 'de_pin'
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(EmptyUARTComponent),
     cv.Optional(CONF_DE_PIN): gpio_output_pin_schema,
-    # cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(FilamentStateSelect),
-    # cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(FilamentMotorSelect),
-    cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(cv.Any),
-    cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(cv.Any),
+    cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(FilamentStateSelect),
+    cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(FilamentMotorSelect),
+    # cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(cv.Any),
+    # cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(cv.Any),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 def to_code(config):
