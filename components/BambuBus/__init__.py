@@ -2,8 +2,8 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import uart, output 
 from esphome.const import CONF_ID
-# vvv--- 导入 gpio 相关的验证 ---vvv
-# vvv--- 导入 gpio 验证函数 ---vvv
+from esphome.components import select # 确保 select 被导入，以便引用 select.Select
+
 from esphome.pins import gpio_output_pin_schema
 
 DEPENDENCIES = ['uart', 'output', 'select']
@@ -14,8 +14,8 @@ DEPENDENCIES = ['uart', 'output', 'select']
 EmptyUARTComponent = cg.esphome_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
 
 # Forward declare select C++ classes (will be fully defined in select.py)
-FilamentStateSelect = cg.esphome_ns.class_('FilamentStateSelect')
-FilamentMotorSelect = cg.esphome_ns.class_('FilamentMotorSelect')
+FilamentStateSelect = cg.esphome_ns.class_('FilamentStateSelect', select.Select, cg.Component)
+FilamentMotorSelect = cg.esphome_ns.class_('FilamentMotorSelect', select.Select, cg.Component)
 
 # Configuration keys for the select entities this component will manage
 CONF_FILAMENT_STATE_SELECT = 'filament_state_select'
