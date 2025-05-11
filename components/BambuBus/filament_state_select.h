@@ -10,6 +10,7 @@ class FilamentStateSelect : public esphome::select::Select, public esphome::Comp
   explicit FilamentStateSelect(BambuBus *parent) : parent_(parent) {}
 
   void setup() override {
+    ESP_LOGI("FilamentStateSelect setup");
     this->traits.set_options({
         "need_pull_back",
         "need_send_out",
