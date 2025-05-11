@@ -43,47 +43,47 @@ def final_schema_processor(config):
     config[CONF_ID] = id_with_correct_type
     return config
 
-# CONFIG_SCHEMA = cv.All(
-#     # 1. 基础结构验证，但不最终确定 CONF_ID 的类型
-#     cv.Schema({
-#         # 从 select.SELECT_SCHEMA 或 cv.ENTITY_BASE_SCHEMA 复制必要的字段
-#         # 例如: CONF_NAME, CONF_INTERNAL, etc.
-#         cv.Required(CONF_NAME): cv.string_strict,
-#         cv.Optional(CONF_INTERNAL): cv.boolean,
-#         cv.Optional(CONF_DISABLED_BY_DEFAULT): cv.boolean,
-#         cv.Optional(CONF_ICON): cv.icon,
-#         cv.Optional(CONF_ENTITY_CATEGORY): cv.entity_category,
-        
-#         # 我们自己的字段
-#         cv.Required(CONF_CONTROLLER_SELECT_TYPE): cv.enum({
-#             TYPE_FILAMENT_STATE: None,
-#             TYPE_MOTOR_INDEX: None,
-#         }, lower=True),
-#         cv.Required(CONF_PARENT_CONTROLLER_ID): cv.use_id(BambuBusController),
-        
-#         # CONF_ID：暂时只验证它存在且是个有效的 ID 字符串
-#         cv.Required(CONF_ID): cv.valid_id_name, # 或者 cv.string, cv.declare_id 会处理实际的 ID 对象创建
-#     }).extend(cv.COMPONENT_SCHEMA), # COMPONENT_SCHEMA 通常是空的或处理 setup_priority 等
-
-#     # 2. 应用 final_schema_processor 来根据类型正确声明/修改 CONF_ID
-#     final_schema_processor
-# )
-
 CONFIG_SCHEMA = cv.All(
+    # 1. 基础结构验证，但不最终确定 CONF_ID 的类型
     cv.Schema({
-        cv.Required(CONF_ID): cv.string, # 或者 cv.valid_id_name
+        # 从 select.SELECT_SCHEMA 或 cv.ENTITY_BASE_SCHEMA 复制必要的字段
+        # 例如: CONF_NAME, CONF_INTERNAL, etc.
         cv.Required(CONF_NAME): cv.string_strict,
-        # 其他如 ICON, ENTITY_CATEGORY 等可以从 cv.ENTITY_BASE_SCHEMA 中酌情选取
-        cv.Optional(CONF_INTERNAL): cv.boolean, 
-        # ...
+        cv.Optional(CONF_INTERNAL): cv.boolean,
+        cv.Optional(CONF_DISABLED_BY_DEFAULT): cv.boolean,
+        cv.Optional(CONF_ICON): cv.icon,
+        cv.Optional(CONF_ENTITY_CATEGORY): cv.entity_category,
+        
+        # 我们自己的字段
         cv.Required(CONF_CONTROLLER_SELECT_TYPE): cv.enum({
             TYPE_FILAMENT_STATE: None,
             TYPE_MOTOR_INDEX: None,
         }, lower=True),
         cv.Required(CONF_PARENT_CONTROLLER_ID): cv.use_id(BambuBusController),
-    }).extend(cv.COMPONENT_SCHEMA), # 通常是安全的
+        
+        # CONF_ID：暂时只验证它存在且是个有效的 ID 字符串
+        cv.Required(CONF_ID): cv.valid_id_name, # 或者 cv.string, cv.declare_id 会处理实际的 ID 对象创建
+    }).extend(cv.COMPONENT_SCHEMA), # COMPONENT_SCHEMA 通常是空的或处理 setup_priority 等
+
+    # 2. 应用 final_schema_processor 来根据类型正确声明/修改 CONF_ID
     final_schema_processor
 )
+
+# CONFIG_SCHEMA = cv.All(
+#     cv.Schema({
+#         cv.Required(CONF_ID): cv.string, # 或者 cv.valid_id_name
+#         cv.Required(CONF_NAME): cv.string_strict,
+#         # 其他如 ICON, ENTITY_CATEGORY 等可以从 cv.ENTITY_BASE_SCHEMA 中酌情选取
+#         cv.Optional(CONF_INTERNAL): cv.boolean, 
+#         # ...
+#         cv.Required(CONF_CONTROLLER_SELECT_TYPE): cv.enum({
+#             TYPE_FILAMENT_STATE: None,
+#             TYPE_MOTOR_INDEX: None,
+#         }, lower=True),
+#         cv.Required(CONF_PARENT_CONTROLLER_ID): cv.use_id(BambuBusController),
+#     }).extend(cv.COMPONENT_SCHEMA), # 通常是安全的
+#     final_schema_processor
+# )
 
 # to_code 函数保持不变，它期望 config[CONF_ID] 是一个具有正确类型的 PvariableID
 async def to_code(config):
