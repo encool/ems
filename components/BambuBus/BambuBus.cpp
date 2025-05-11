@@ -7,7 +7,7 @@
 #include "esphome/core/helpers.h" // <<<--- 添加这一行
 
 // Global pointer to hold the single BambuBus instance
-BambuBus *g_bambu_bus_instance = nullptr;
+esphome::BambuBus *g_bambu_bus_instance = nullptr;
 
 // 定义并初始化全局 CRC 对象 (只在这里做一次)
 CRC16 crc_16{0x1021, 0x913D, 0, false, false};
