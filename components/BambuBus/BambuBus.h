@@ -13,7 +13,8 @@
 #define Bambubus_version 5
 
 // 前向声明移到 namespace esphome 内
-namespace esphome {
+namespace esphome
+{
     class FilamentStateSelect;
     class FilamentMotorSelect;
 } // namespace esphome
@@ -113,56 +114,57 @@ inline esphome::optional<_filament_motion_state_set> string_to_filament_state(co
     return {}; // esphome::optional is empty
 }
 
-namespace esphome {
-
-class BambuBus : public esphome::Component, public esphome::uart::UARTDevice
+namespace esphome
 {
-protected:
-    esphome::GPIOPin *de_pin_{nullptr}; // <<<--- 添加 DE 引脚成员变量
-    bool initialized_{false};           // 用于跟踪 pref_ 是否已初始化
 
-    _filament_motion_state_set current_motion_state_ = idle;
-    FilamentMotionMotorIndex current_motor_index_ = FilamentMotionMotorIndex::MOTOR_1;
+    class BambuBus : public esphome::Component, public esphome::uart::UARTDevice
+    {
+    protected:
+        esphome::GPIOPin *de_pin_{nullptr}; // <<<--- 添加 DE 引脚成员变量
+        bool initialized_{false};           // 用于跟踪 pref_ 是否已初始化
 
-    // Helper to update HA when internal state changes
-    void publish_motion_state_to_ha();
-    void publish_motor_index_to_ha();
+        _filament_motion_state_set current_motion_state_ = idle;
+        FilamentMotionMotorIndex current_motor_index_ = FilamentMotionMotorIndex::MOTOR_1;
 
-public:
-    esphome::ESPPreferenceObject pref_;
+        // Helper to update HA when internal state changes
+        void publish_motion_state_to_ha();
+        void publish_motor_index_to_ha();
 
-    BambuBus() : UARTDevice() {}
+    public:
+        esphome::ESPPreferenceObject pref_;
 
-    void setup() override;
-    void loop() override;
+        BambuBus() : UARTDevice() {}
 
-    // 添加 DE 引脚的设置方法
-    void set_de_pin(esphome::GPIOPin *de_pin) { this->de_pin_ = de_pin; }
-    void send_uart_with_de(const uint8_t *data, uint16_t length); // 用于带 DE 控制发送的新方法
-    package_type BambuBus_run();
-    bool is_initialized_() const { return this->initialized_; }
-    void mark_initialized_() { this->initialized_ = true; }
+        void setup() override;
+        void loop() override;
 
-    // Pointers to the select entities to update them
-    FilamentStateSelect *state_select_entity_{nullptr};
-    FilamentMotorSelect *motor_select_entity_{nullptr};
+        // 添加 DE 引脚的设置方法
+        void set_de_pin(esphome::GPIOPin *de_pin) { this->de_pin_ = de_pin; }
+        void send_uart_with_de(const uint8_t *data, uint16_t length); // 用于带 DE 控制发送的新方法
+        package_type BambuBus_run();
+        bool is_initialized_() const { return this->initialized_; }
+        void mark_initialized_() { this->initialized_ = true; }
 
-    void set_motor_state(unsigned char AMS_num, unsigned char read_num, _filament_motion_state_set motor_state);
+        // Pointers to the select entities to update them
+        FilamentStateSelect *state_select_entity_{nullptr};
+        FilamentMotorSelect *motor_select_entity_{nullptr};
 
-    // Getters (could be used by select entities for initial state, or by other parts)
-    _filament_motion_state_set get_current_motion_state() const { return current_motion_state_; }
-    FilamentMotionMotorIndex get_current_motor_index() const { return current_motor_index_; }
-
-    // Methods to link select entities (called from generated code via __init__.py)
-    void set_filament_state_select(FilamentStateSelect *select_entity) { this->state_select_entity_ = select_entity; }
-    void set_filament_motor_select(FilamentMotorSelect *select_entity) { this->motor_select_entity_ = select_entity; }
-
-private:
-    bool need_debug = true;
         // Methods to set the states (called by select entities)
-    void set_current_motion_state(_filament_motion_state_set state);
-    void set_current_motor_index(FilamentMotionMotorIndex index);
-};
+        void set_current_motion_state(_filament_motion_state_set state);
+        void set_current_motor_index(FilamentMotionMotorIndex index);
+        void set_motor_state(unsigned char AMS_num, unsigned char read_num, _filament_motion_state_set motor_state);
+
+        // Getters (could be used by select entities for initial state, or by other parts)
+        _filament_motion_state_set get_current_motion_state() const { return current_motion_state_; }
+        FilamentMotionMotorIndex get_current_motor_index() const { return current_motor_index_; }
+
+        // Methods to link select entities (called from generated code via __init__.py)
+        void set_filament_state_select(FilamentStateSelect *select_entity) { this->state_select_entity_ = select_entity; }
+        void set_filament_motor_select(FilamentMotorSelect *select_entity) { this->motor_select_entity_ = select_entity; }
+
+    private:
+        bool need_debug = true;
+    };
 
 }
 // ... 其他类/函数声明 ...
