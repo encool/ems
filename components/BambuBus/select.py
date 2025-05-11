@@ -28,79 +28,58 @@ def _get_id_declarator_for_select_type(select_type_str):
     raise cv.Invalid(f"Unknown controller_select_type for ID declaration: {select_type_str}")
 
 def final_schema_processor(config):
-    # config 是一个字典，包含了当前 select 实体的配置
-    # config[CONF_ID] 此时是用户在 YAML 中提供的 ID 字符串或一个简单的 ID 对象
-    
     id_declarator_validator = _get_id_declarator_for_select_type(config[CONF_CONTROLLER_SELECT_TYPE])
+    # config[CONF_ID] 此时是 PvariableID (由 select.SELECT_SCHEMA 中的 cv.declare_id(Select) 创建)
+    # 我们需要修改这个 PvariableID 的 .type 属性
     
-    # 应用这个验证器 (它也负责声明) 到 ID 的值上
-    # cv.declare_id(TYPE) 返回的验证器会接受 ID 字符串，
-    # 声明它，并返回一个 esphome.config_validation.ID 对象 (实际上是 PvariableID)。
-    # 这个 PvariableID 对象的 .type 属性将被设置为 TYPE。
-    id_with_correct_type = id_declarator_validator(config[CONF_ID])
-    
-    # 将带有正确类型的 ID 对象放回配置中
-    config[CONF_ID] = id_with_correct_type
+    # id_obj = config[CONF_ID] # 这个是 PvariableID 对象
+    # if config[CONF_CONTROLLER_SELECT_TYPE] == TYPE_FILAMENT_STATE:
+    #     id_obj.type = _FilamentStateSelect
+    # elif config[CONF_CONTROLLER_SELECT_TYPE] == TYPE_MOTOR_INDEX:
+    #     id_obj.type = _FilamentMotorSelect
+    # else: # Should not happen
+    #     pass
+
+    # 更好的方法：让 id_declarator_validator 重新声明，但这可能会导致 ID 重复声明的警告
+    # 或者，如果 id_declarator_validator 返回一个新的 PvariableID，则替换它
+    id_value_str = config[CONF_ID].id # 获取原始 ID 字符串
+    new_id_obj = id_declarator_validator(id_value_str) # 用原始 ID 字符串重新声明
+    config[CONF_ID] = new_id_obj # 替换为带有正确类型的 PvariableID
+
     return config
 
+# 使用 select.SELECT_SCHEMA 作为基础，它已经包含了 CONF_ID, CONF_DISABLED_BY_DEFAULT 等
+# select.SELECT_SCHEMA 内部会用 cv.declare_id(Select) 来声明 CONF_ID
 CONFIG_SCHEMA = cv.All(
-    # 1. 基础结构验证，但不最终确定 CONF_ID 的类型
-    cv.Schema({
-        # 从 select.SELECT_SCHEMA 或 cv.ENTITY_BASE_SCHEMA 复制必要的字段
-        # 例如: CONF_NAME, CONF_INTERNAL, etc.
-        cv.Required(CONF_NAME): cv.string_strict,
-        cv.Optional(CONF_INTERNAL): cv.boolean,
-        cv.Optional(CONF_DISABLED_BY_DEFAULT): cv.boolean,
-        cv.Optional(CONF_ICON): cv.icon,
-        cv.Optional(CONF_ENTITY_CATEGORY): cv.entity_category,
-        
-        # 我们自己的字段
+    select.SELECT_SCHEMA.extend({
+        # 添加我们平台特定的字段
         cv.Required(CONF_CONTROLLER_SELECT_TYPE): cv.enum({
             TYPE_FILAMENT_STATE: None,
             TYPE_MOTOR_INDEX: None,
         }, lower=True),
         cv.Required(CONF_PARENT_CONTROLLER_ID): cv.use_id(BambuBusController),
-        
-        # CONF_ID：暂时只验证它存在且是个有效的 ID 字符串
-        cv.Required(CONF_ID): cv.string, # 或者 cv.string, cv.declare_id 会处理实际的 ID 对象创建
-    }).extend(cv.COMPONENT_SCHEMA), # COMPONENT_SCHEMA 通常是空的或处理 setup_priority 等
+        # 如果 select.SELECT_SCHEMA 中有些字段你不想要，需要想办法移除或覆盖
+        # 通常，我们只是添加字段
+    }).extend(cv.COMPONENT_SCHEMA), # COMPONENT_SCHEMA 通常用于 setup_priority 等
 
-    # 2. 应用 final_schema_processor 来根据类型正确声明/修改 CONF_ID
+    # final_schema_processor 现在需要处理一个已经被 select.SELECT_SCHEMA 声明为
+    # select.Select 类型的 ID。它的任务是“覆盖”或“修正”这个类型。
     final_schema_processor
 )
 
-# CONFIG_SCHEMA = cv.All(
-#     cv.Schema({
-#         cv.Required(CONF_ID): cv.string, # 或者 cv.valid_id_name
-#         cv.Required(CONF_NAME): cv.string_strict,
-#         # 其他如 ICON, ENTITY_CATEGORY 等可以从 cv.ENTITY_BASE_SCHEMA 中酌情选取
-#         cv.Optional(CONF_INTERNAL): cv.boolean, 
-#         # ...
-#         cv.Required(CONF_CONTROLLER_SELECT_TYPE): cv.enum({
-#             TYPE_FILAMENT_STATE: None,
-#             TYPE_MOTOR_INDEX: None,
-#         }, lower=True),
-#         cv.Required(CONF_PARENT_CONTROLLER_ID): cv.use_id(BambuBusController),
-#     }).extend(cv.COMPONENT_SCHEMA), # 通常是安全的
-#     final_schema_processor
-# )
-
-# to_code 函数保持不变，它期望 config[CONF_ID] 是一个具有正确类型的 PvariableID
+# to_code 函数保持不变或类似之前的结构
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_CONTROLLER_ID])
     select_type_str = config[CONF_CONTROLLER_SELECT_TYPE]
     
-    # config[CONF_ID] 应该是由 final_schema_processor 处理过的 PvariableID
-    # 它已经有关联的 C++ 类型 (_FilamentStateSelect 或 _FilamentMotorSelect)
-    var_id_obj = config[CONF_ID]
+    var_id_obj = config[CONF_ID] # 这个 PvariableID 的 .type 应该是被 final_schema_processor 修正过的
 
     if select_type_str == TYPE_FILAMENT_STATE:
-        # cg.new_Pvariable(id_obj, *constructor_args)
-        # 第一个参数是 PvariableID 对象，第二个开始是构造函数参数
         var = cg.new_Pvariable(var_id_obj, parent)
     elif select_type_str == TYPE_MOTOR_INDEX:
         var = cg.new_Pvariable(var_id_obj, parent)
     else:
         raise cv.Invalid(f"Unknown controller_select_type in to_code: {select_type_str}")
 
+    # options=[] 是因为我们的 options 是在 C++ 的 setup() 中动态设置的
     await select.register_select(var, config, options=[])
