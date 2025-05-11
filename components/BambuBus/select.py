@@ -83,3 +83,6 @@ async def to_code(config):
 
     # options=[] 是因为我们的 options 是在 C++ 的 setup() 中动态设置的
     await select.register_select(var, config, options=[])
+
+        # 将 select 实体也注册为 Component，这样它的 setup() 方法会被调用
+    await cg.register_component(var, config) # <<< --- 添加这一行 ---
