@@ -1254,16 +1254,16 @@ namespace esphome
 
         switch (read_num)
         {
-        case 1:
+        case 0:
             motorIndexToSet = FilamentMotionMotorIndex::MOTOR_1;
             break;
-        case 2:
+        case 1:
             motorIndexToSet = FilamentMotionMotorIndex::MOTOR_2;
             break;
-        case 3:
+        case 2:
             motorIndexToSet = FilamentMotionMotorIndex::MOTOR_3;
             break;
-        case 4:
+        case 3:
             motorIndexToSet = FilamentMotionMotorIndex::MOTOR_4;
             break;
         default:
