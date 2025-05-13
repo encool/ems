@@ -584,7 +584,6 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
         }
         else if (read_num == 0xFF)
         {
-            ESP_LOGI(TAG, "AMS lite: Processing specific all slot to idle slot %u for AMS %u", read_num, AMS_num);
             for (int i = 0; i < 4; i++)
             {
                 data_save.filament[AMS_num][i].motion_set = idle;
