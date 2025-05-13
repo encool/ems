@@ -41,7 +41,7 @@ namespace esphome
         return;
       }
 
-      this->parent_->set_current_motor_index(new_index_enum);
+      this->parent_->update_ha_for_motor_index(new_index_enum);
     }
 
     void publish_state_from_parent(FilamentMotionMotorIndex current_app_idx)

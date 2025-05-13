@@ -42,7 +42,7 @@ namespace esphome
         return;
       }
 
-      this->parent_->set_current_motion_state(new_state_enum);
+      this->parent_->update_ha_for_motion_state(new_state_enum);
       // The parent will call publish_state_from_parent which eventually calls this->publish_state(value)
     }
 

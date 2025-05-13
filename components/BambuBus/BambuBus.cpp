@@ -560,34 +560,27 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
     {
         if (read_num < 4)
         {
-            _filament_motion_state_set target_state;
             if ((statu_flags == 0x03) && (fliment_motion_flag == 0x3F)) // 03 3F
             {
                 data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
                 data_save.filament[AMS_num][read_num].motion_set = need_pull_back;
-                target_state = need_pull_back;
             }
             else if ((statu_flags == 0x03) && (fliment_motion_flag == 0xBF)) // 03 BF
             {
                 data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
                 data_save.filament[AMS_num][read_num].motion_set = need_send_out;
-                target_state = need_send_out;
             }
             else
             {
                 if (data_save.filament[AMS_num][read_num].motion_set == need_pull_back)
                 {
                     data_save.filament[AMS_num][read_num].motion_set = idle;
-                    target_state = idle;
                 }
                 else if (data_save.filament[AMS_num][read_num].motion_set == need_send_out)
                 {
                     data_save.filament[AMS_num][read_num].motion_set = on_use;
-                    target_state = on_use;
                 }
             }
-            ESP_LOGI(TAG, "AMS lite: Processing specific slot %u for AMS %u target_state %s", read_num, AMS_num, target_state);
-            g_bambu_bus_instance->set_motor_state(AMS_num, read_num, target_state);
         }
         else if (read_num == 0xFF)
         {
@@ -595,7 +588,6 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
             for (int i = 0; i < 4; i++)
             {
                 data_save.filament[AMS_num][i].motion_set = idle;
-                g_bambu_bus_instance->set_motor_state(AMS_num, i, idle);
             }
         }
     }
@@ -606,11 +598,11 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
             ESP_LOGI(TAG, "AMS lite: Processing specific slot %u for AMS %u target_state %s", read_num, AMS_num, on_use);
             data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
             data_save.filament[AMS_num][read_num].motion_set = on_use;
-            g_bambu_bus_instance->set_motor_state(AMS_num, read_num, on_use);
         }
     }
     else
         return false;
+    g_bambu_bus_instance->trigger_ha_update();
     return true;
 }
 // 3D E0 3C 12 04 00 00 00 00 09 09 09 00 00 00 00 00 00 00
@@ -1179,14 +1171,7 @@ namespace esphome
 
         BambuBus_init();
 
-        // 作为简单的开始，先用默认值发布：
-        this->current_motion_state_ = idle;                             // 或者你希望的默认值
-        this->current_motor_index_ = FilamentMotionMotorIndex::MOTOR_1; // 或者你希望的默认值
-
-        ESP_LOGD(TAG, "Initial motion state: %d", (int)this->current_motion_state_);
-        ESP_LOGD(TAG, "Initial motor index: %d", (int)this->current_motor_index_);
-        publish_motion_state_to_ha();
-        publish_motor_index_to_ha();
+        this->trigger_ha_update(); // New: publish initial state based on data_save
 
         ESP_LOGI(TAG, "Setup ended");
     }
@@ -1248,72 +1233,138 @@ namespace esphome
         }
     }
 
-    void BambuBus::set_motor_state(unsigned char AMS_num, unsigned char read_num, _filament_motion_state_set motor_state)
+    // In BambuBus.cpp
+    _filament_motion_state_set BambuBus::get_current_selected_filament_motion_state() const
     {
-        FilamentMotionMotorIndex motorIndexToSet;
+        int now_num = get_now_filament_num(); // This is BambuBus_now_filament_num
+        if (now_num < 0 || now_num >= 16)
+        { // Basic bounds check for 4 AMS x 4 slots
+            ESP_LOGW(TAG, "get_current_selected_filament_motion_state: BambuBus_now_filament_num (%d) is out of expected range.", now_num);
+            return idle; // Return a default safe state
+        }
+        unsigned char ams_idx = now_num / 4;
+        unsigned char slot_idx = now_num % 4;
 
-        switch (read_num)
+        // Assuming data_save is globally accessible and populated
+        return data_save.filament[ams_idx][slot_idx].motion_set;
+    }
+
+    FilamentMotionMotorIndex BambuBus::get_current_selected_motor_index() const
+    {
+        int now_num = get_now_filament_num();
+        if (now_num < 0 || now_num >= 16)
+        {
+            ESP_LOGW(TAG, "get_current_selected_motor_index: BambuBus_now_filament_num (%d) is out of expected range.", now_num);
+            return FilamentMotionMotorIndex::MOTOR_1; // Default
+        }
+        unsigned char slot_idx = now_num % 4;
+
+        switch (slot_idx)
         {
         case 0:
-            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_1;
-            break;
+            return FilamentMotionMotorIndex::MOTOR_1;
         case 1:
-            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_2;
-            break;
+            return FilamentMotionMotorIndex::MOTOR_2;
         case 2:
-            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_3;
-            break;
+            return FilamentMotionMotorIndex::MOTOR_3;
         case 3:
-            motorIndexToSet = FilamentMotionMotorIndex::MOTOR_4;
-            break;
-        default:
-            ESP_LOGE(TAG, "set_motor_state: Invalid motor index value received: %u. Aborting state set.", read_num);
-            return; // Exit the function immediately
+            return FilamentMotionMotorIndex::MOTOR_4;
+        default: // Should not happen if % 4
+            return FilamentMotionMotorIndex::MOTOR_1;
         }
-
-        // If we reach here, read_num was valid and motorIndexToSet is assigned.
-        // this->set_current_motor_index(motorIndexToSet);
-        // this->set_current_motion_state(motor_state);
-        ESP_LOGI(TAG, "set_motor_state: Successfully set motor index to %u and motion state to %d",
-                 read_num, (int)motor_state);
     }
 
-    void BambuBus::set_current_motion_state(_filament_motion_state_set state)
+    char BambuBus::get_current_selected_ams_index() const
     {
-        if (this->current_motion_state_ != state)
+        int now_num = get_now_filament_num();
+        if (now_num < 0 || now_num >= 16)
         {
-            ESP_LOGD(TAG, "Motion state changed from HA: %d", (int)state);
-            this->current_motion_state_ = state;
-            // Here you would apply the state change to your hardware/logic
-            publish_motion_state_to_ha(); // Confirm state back to HA
+            ESP_LOGW(TAG, "get_current_selected_motor_index: BambuBus_now_filament_num (%d) is out of expected range.", now_num);
+            return 0; // Default
         }
+        unsigned char ams_idx = now_num / 4;
+        return ams_idx;
     }
 
-    void BambuBus::set_current_motor_index(FilamentMotionMotorIndex index)
-    {
-        if (this->current_motor_index_ != index)
-        {
-            ESP_LOGD(TAG, "Motor index changed from HA: %d", (int)index);
-            this->current_motor_index_ = index;
-            // Apply change to hardware/logic
-            publish_motor_index_to_ha(); // Confirm state back to HA
-        }
-    }
-
-    void BambuBus::publish_motion_state_to_ha()
+    // In BambuBus.cpp
+    void BambuBus::publish_selected_filament_state_to_ha() // Renamed
     {
         if (this->state_select_entity_)
         {
-            this->state_select_entity_->publish_state_from_parent(this->current_motion_state_);
+            this->state_select_entity_->publish_state_from_parent(this->get_current_selected_filament_motion_state());
         }
     }
 
-    void BambuBus::publish_motor_index_to_ha()
+    void BambuBus::publish_selected_motor_index_to_ha() // Renamed
     {
         if (this->motor_select_entity_)
         {
-            this->motor_select_entity_->publish_state_from_parent(this->current_motor_index_);
+            this->motor_select_entity_->publish_state_from_parent(this->get_current_selected_motor_index());
         }
+    }
+
+    // In BambuBus.cpp
+    void BambuBus::trigger_ha_update()
+    {
+        ESP_LOGD(TAG, "Triggering HA update based on internal state change.");
+        this->publish_selected_motor_index_to_ha();
+        this->publish_selected_filament_state_to_ha();
+    }
+
+    // In BambuBus.cpp
+    void BambuBus::update_ha_for_motion_state(_filament_motion_state_set new_state_for_current_filament)
+    {
+        // This function is called IF HA wants to change the state.
+        // For now, HA is display-only, so this might not be used.
+        // If used, it should update data_save for the *currently selected* filament.
+        ESP_LOGD(TAG, "update_ha_for_motion_state called by HA (currently for display only or future extension) with state: %d", (int)new_state_for_current_filament);
+
+        // To make this functional for control:
+        /*
+        int now_num = get_now_filament_num();
+        if (now_num < 0 || now_num >= 16) return;
+        unsigned char ams_idx = now_num / 4;
+        unsigned char slot_idx = now_num % 4;
+
+        if (data_save.filament[ams_idx][slot_idx].motion_set != new_state_for_current_filament) {
+            data_save.filament[ams_idx][slot_idx].motion_set = new_state_for_current_filament;
+            // Potentially update BambuBus_now_filament_num based on the new state
+            // ... logic for that ...
+            Bambubus_set_need_to_save();
+            this->trigger_ha_update(); // Update HA with the change
+        }
+        */
+    }
+
+    void BambuBus::update_ha_for_motor_index(FilamentMotionMotorIndex new_active_motor_idx_enum)
+    {
+        // This function is called IF HA wants to change the selected motor.
+        // For now, HA is display-only.
+        ESP_LOGD(TAG, "update_ha_for_motor_index called by HA (currently for display only or future extension) with motor index: %d", (int)new_active_motor_idx_enum);
+
+        // To make this functional for control:
+        /*
+        unsigned char target_slot_idx;
+        switch (new_active_motor_idx_enum) {
+            case FilamentMotionMotorIndex::MOTOR_1: target_slot_idx = 0; break;
+            case FilamentMotionMotorIndex::MOTOR_2: target_slot_idx = 1; break;
+            case FilamentMotionMotorIndex::MOTOR_3: target_slot_idx = 2; break;
+            case FilamentMotionMotorIndex::MOTOR_4: target_slot_idx = 3; break;
+            default: return;
+        }
+
+        // Assuming we are always operating on AMS 0 for now if controlled by HA directly
+        unsigned char current_ams_idx_for_ha_control = 0; // Or some other logic
+        int new_global_filament_num = current_ams_idx_for_ha_control * 4 + target_slot_idx;
+
+        if (data_save.BambuBus_now_filament_num != new_global_filament_num) {
+            data_save.BambuBus_now_filament_num = new_global_filament_num;
+            // The motion state of this newly selected filament should also be considered/updated.
+            // For simplicity, we just change the selection. The motion state will be read by HA.
+            Bambubus_set_need_to_save();
+            this->trigger_ha_update();
+        }
+        */
     }
 
 }

@@ -123,12 +123,9 @@ namespace esphome
         esphome::GPIOPin *de_pin_{nullptr}; // <<<--- 添加 DE 引脚成员变量
         bool initialized_{false};           // 用于跟踪 pref_ 是否已初始化
 
-        _filament_motion_state_set current_motion_state_ = idle;
-        FilamentMotionMotorIndex current_motor_index_ = FilamentMotionMotorIndex::MOTOR_1;
-
         // Helper to update HA when internal state changes
-        void publish_motion_state_to_ha();
-        void publish_motor_index_to_ha();
+        void publish_selected_filament_state_to_ha(); // Renamed for clarity
+        void publish_selected_motor_index_to_ha();    // Renamed for clarity
 
     public:
         esphome::ESPPreferenceObject pref_;
@@ -148,22 +145,28 @@ namespace esphome
         // Pointers to the select entities to update them
         FilamentStateSelect *state_select_entity_{nullptr};
         FilamentMotorSelect *motor_select_entity_{nullptr};
-
-        // Methods to set the states (called by select entities)
-        void set_current_motion_state(_filament_motion_state_set state);
-        void set_current_motor_index(FilamentMotionMotorIndex index);
-        void set_motor_state(unsigned char AMS_num, unsigned char read_num, _filament_motion_state_set motor_state);
-
-        // Getters (could be used by select entities for initial state, or by other parts)
-        _filament_motion_state_set get_current_motion_state() const { return current_motion_state_; }
-        FilamentMotionMotorIndex get_current_motor_index() const { return current_motor_index_; }
-
         // Methods to link select entities (called from generated code via __init__.py)
         void set_filament_state_select(FilamentStateSelect *select_entity) { this->state_select_entity_ = select_entity; }
         void set_filament_motor_select(FilamentMotorSelect *select_entity) { this->motor_select_entity_ = select_entity; }
 
+        // Methods to set the states (called by select entities, OR by internal logic that wants to update HA)
+        // For now, HA select entities are display-only, so these might be called internally
+        // if we want to force an update based on data_save changes.
+        // OR, they can be called by the select control() if we re-enable HA control later.
+        void update_ha_for_motion_state(_filament_motion_state_set new_state_for_current_filament);
+        void update_ha_for_motor_index(FilamentMotionMotorIndex new_active_motor_idx);
+
+        void trigger_ha_update(); // New method to be called when data_save or BambuBus_now_filament_num changes
+
+        // Getters will now derive state from data_save and BambuBus_now_filament_num
+        _filament_motion_state_set get_current_selected_filament_motion_state() const;
+        FilamentMotionMotorIndex get_current_selected_motor_index() const;
+        char BambuBus::get_current_selected_ams_index() const;
+
     private:
         bool need_debug = true;
+        // 假设我们主要关注 AMS 0 的状态在 HA Selects 中显示
+        const unsigned char HA_DISPLAY_AMS_INDEX = 0;
     };
 
 }
