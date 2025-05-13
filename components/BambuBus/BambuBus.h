@@ -161,7 +161,7 @@ namespace esphome
         // Getters will now derive state from data_save and BambuBus_now_filament_num
         _filament_motion_state_set get_current_selected_filament_motion_state() const;
         FilamentMotionMotorIndex get_current_selected_motor_index() const;
-        char BambuBus::get_current_selected_ams_index() const;
+        char get_current_selected_ams_index() const;
 
     private:
         bool need_debug = true;
