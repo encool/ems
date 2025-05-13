@@ -1272,9 +1272,9 @@ namespace esphome
         }
 
         // If we reach here, read_num was valid and motorIndexToSet is assigned.
-        this->set_current_motor_index(motorIndexToSet);
-        this->set_current_motion_state(motor_state);
-        ESP_LOGD(TAG, "set_motor_state: Successfully set motor index to %u and motion state to %d",
+        // this->set_current_motor_index(motorIndexToSet);
+        // this->set_current_motion_state(motor_state);
+        ESP_LOGI(TAG, "set_motor_state: Successfully set motor index to %u and motion state to %d",
                  read_num, (int)motor_state);
     }
 
