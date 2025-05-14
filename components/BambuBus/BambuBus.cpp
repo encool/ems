@@ -518,6 +518,7 @@ void set_motion_res_datas(unsigned char *set_buf, unsigned char AMS_num, unsigne
 }
 bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char statu_flags, unsigned char fliment_motion_flag)
 {
+    int filament_global_index = AMS_num * 4 + read_num;
     if (BambuBus_address == 0x700) // AMS08
     {
         if ((read_num != 0xFF) && (read_num < 4))
@@ -562,11 +563,13 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
         {
             if ((statu_flags == 0x03) && (fliment_motion_flag == 0x3F)) // 03 3F
             {
+                ESP_LOGI(TAG, "Set Motion (AMS Lite): Slot %d -> need_pull_back", filament_global_index);
                 data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
                 data_save.filament[AMS_num][read_num].motion_set = need_pull_back;
             }
             else if ((statu_flags == 0x03) && (fliment_motion_flag == 0xBF)) // 03 BF
             {
+                ESP_LOGI(TAG, "Set Motion (AMS Lite): Slot %d -> need_send_out", filament_global_index);
                 data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
                 data_save.filament[AMS_num][read_num].motion_set = need_send_out;
             }
@@ -574,11 +577,17 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
             {
                 if (data_save.filament[AMS_num][read_num].motion_set == need_pull_back)
                 {
+                    ESP_LOGI(TAG, "Set Motion (AMS Lite): Slot %d -> idle (from pull_back)", filament_global_index);
                     data_save.filament[AMS_num][read_num].motion_set = idle;
                 }
                 else if (data_save.filament[AMS_num][read_num].motion_set == need_send_out)
                 {
+                    ESP_LOGI(TAG, "Set Motion (AMS Lite): Slot %d -> on_use (from send_out)", filament_global_index);
                     data_save.filament[AMS_num][read_num].motion_set = on_use;
+                }
+                else
+                {
+                    ESP_LOGD(TAG, "Set Motion (AMS Lite): Slot %d - No state change for flags: statu=0x%02X, motion=0x%02X", filament_global_index, statu_flags, fliment_motion_flag);
                 }
             }
         }
@@ -594,7 +603,7 @@ bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char sta
     {
         if ((read_num != 0xFF) && (read_num < 4))
         {
-            ESP_LOGI(TAG, "AMS lite: Processing specific slot %u for AMS %u target_state %s", read_num, AMS_num, on_use);
+            ESP_LOGI(TAG, "Set Motion (No AMS): Slot %d -> on_use", filament_global_index);
             data_save.BambuBus_now_filament_num = AMS_num * 4 + read_num;
             data_save.filament[AMS_num][read_num].motion_set = on_use;
         }
