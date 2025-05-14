@@ -67,6 +67,7 @@ namespace esphome
       }
       if (this->state != state_str)
       {
+        ESP_LOGI("filament_motor_index", "motor index %s to new moto index %s ", this->state, state_str);
         this->publish_state(state_str);
       }
     }
