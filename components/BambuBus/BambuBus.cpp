@@ -1157,7 +1157,7 @@ namespace esphome
         package_type stu = BambuBus_package_NONE;
         static uint64_t time_set = 0;
         static uint64_t time_motion = 0;
-        static uint64_t timeout_time = 1000;
+        static uint64_t timeout_time = 2000;
 
         uint32_t timex = esphome::millis(); // 使用 ESPHome 的时间函数
 
