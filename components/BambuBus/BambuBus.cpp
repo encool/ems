@@ -1177,15 +1177,15 @@ namespace esphome
             switch (stu)
             {
             case BambuBus_package_heartbeat:
-                ESP_LOGI(TAG, "Processing package (Type: BambuBus_package_heartbeat)...");
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_heartbeat)...");
                 time_set = timex + 1000;
                 break;
             case BambuBus_package_filament_motion_short:
-                ESP_LOGI(TAG, "Processing package (Type: BambuBus_package_filament_motion_short)...");
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_short)...");
                 send_for_Cxx(buf_X, data_length);
                 break;
             case BambuBus_package_filament_motion_long:
-                ESP_LOGI(TAG, "Processing package (Type: BambuBus_package_filament_motion_long)...");
+                ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_long)...");
                 send_for_Dxx(buf_X, data_length);
                 time_motion = timex + 1000;
                 break;
@@ -1302,7 +1302,7 @@ namespace esphome
             }
             time_motion = 0; // 重置超时，等待下一次运动指令
         }
-        
+
         if (Bambubus_need_to_save)
         {
             Bambubus_save();         // Bambubus_save 内部会重置 Bambubus_need_to_save
