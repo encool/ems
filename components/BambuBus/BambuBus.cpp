@@ -491,6 +491,20 @@ uint8_t get_filament_left_char(uint8_t AMS_num)
     return data;
 }
 
+// Helper struct to track last printed state for a given slot
+struct LastPrintedFilamentInfo
+{
+    _filament_motion_state_set motion_set{idle};
+    float meters{0.0f};
+    bool online_status{false}; // To track if it's the active one for detailed logging
+    // Add other fields if needed for change detection
+};
+// We need an array for all possible slots, assuming max 4 AMS x 4 slots = 16
+static LastPrintedFilamentInfo last_printed_info[16];
+static uint32_t last_log_print_time_ms = 0;
+const uint32_t LOG_PRINT_INTERVAL_MS = 5000;         // Log every 5 seconds
+const float METERS_CHANGE_THRESHOLD_FOR_LOG = 0.01f; // Log if meters change by at least 1cm
+
 void set_motion_res_datas(unsigned char *set_buf, unsigned char AMS_num, unsigned char read_num)
 {
     // unsigned char statu_flags = buf[6];
@@ -515,6 +529,68 @@ void set_motion_res_datas(unsigned char *set_buf, unsigned char AMS_num, unsigne
     memcpy(set_buf + 4, &meters, sizeof(meters));
     set_buf[13] = 0;
     set_buf[24] = get_filament_left_char(AMS_num);
+
+    // ===========================================
+    // Logging logic starts here
+    _filament *target_filament = nullptr;
+    int global_filament_idx = -1;
+    unsigned char current_ams_id_char_for_logging = AMS_num + '0'; // For logging AMS 0, 1, 2, 3
+
+    if (read_num != 0xFF && read_num < max_filament_num) // Ensure read_num is a valid slot index
+    {
+        global_filament_idx = AMS_num * max_filament_num + read_num;
+        target_filament = &data_save.filament[AMS_num][read_num];
+    }
+    uint32_t current_time_ms = esphome::millis();
+    bool should_print_log = false;
+
+    if (current_time_ms - last_log_print_time_ms >= LOG_PRINT_INTERVAL_MS)
+    {
+        should_print_log = true;
+    }
+
+    // Check for significant changes in the currently reported filament
+    if (target_filament && global_filament_idx >= 0 && global_filament_idx < 16)
+    { // If a specific filament is being reported on
+        bool motion_changed = (last_printed_info[global_filament_idx].motion_set != target_filament->motion_set);
+        bool meters_significantly_changed = (fabs(last_printed_info[global_filament_idx].meters - meters) >= METERS_CHANGE_THRESHOLD_FOR_LOG);
+        bool is_now_active_filament = (get_now_filament_num() == global_filament_idx);
+        bool active_status_changed = (last_printed_info[global_filament_idx].online_status != is_now_active_filament);
+
+        if (motion_changed || meters_significantly_changed || active_status_changed)
+        {
+            should_print_log = true; // Force print if key state changed
+        }
+
+        if (should_print_log)
+        {
+            ESP_LOGI(TAG, "Reporting AMS %c Slot %d: Motion=%s, MetersSent=%.3fm (RawMeters=%.3fm), IsActive=%s, StatusByte=0x%02X",
+                     current_ams_id_char_for_logging,
+                     read_num,
+                     filament_state_to_string(target_filament->motion_set), // Use the helper
+                     meters,
+                     target_filament->meters,
+                     is_now_active_filament ? "Yes" : "No",
+                     set_buf[24]); // Log the filament_left_char for this AMS
+
+            // Update last printed state for this specific filament
+            last_printed_info[global_filament_idx].motion_set = target_filament->motion_set;
+            last_printed_info[global_filament_idx].meters = meters; // Store the value that was sent
+            last_printed_info[global_filament_idx].online_status = is_now_active_filament;
+        }
+    }
+    else if (read_num == 0xFF && should_print_log)
+    { // Reporting general status for an AMS, not a specific slot
+        ESP_LOGI(TAG, "Reporting AMS %c (No Specific Slot): StatusByte=0x%02X",
+                 current_ams_id_char_for_logging,
+                 set_buf[24]);
+    }
+
+    if (should_print_log)
+    {
+        last_log_print_time_ms = current_time_ms; // Update global log print time
+    }
+    // =========================================
 }
 bool set_motion(unsigned char AMS_num, unsigned char read_num, unsigned char statu_flags, unsigned char fliment_motion_flag)
 {
