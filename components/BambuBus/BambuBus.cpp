@@ -491,6 +491,7 @@ uint8_t get_filament_left_char(uint8_t AMS_num)
     return data;
 }
 
+// ========================== LOG ======================
 // Helper struct to track last printed state for a given slot
 struct LastPrintedFilamentInfo
 {
@@ -504,6 +505,37 @@ static LastPrintedFilamentInfo last_printed_info[16];
 static uint32_t last_log_print_time_ms = 0;
 const uint32_t LOG_PRINT_INTERVAL_MS = 5000;         // Log every 5 seconds
 const float METERS_CHANGE_THRESHOLD_FOR_LOG = 0.01f; // Log if meters change by at least 1cm
+
+// Helper function to decode the status byte for logging
+std::string decode_ams_status_byte(uint8_t status_byte)
+{
+    std::string decoded_status = "Slots[";
+    for (int i = 0; i < 4; ++i)
+    {
+        uint8_t slot_pair_status = (status_byte >> (i * 2)) & 0x03; // Get the 2 bits for slot i
+        decoded_status += std::to_string(i) + ":";
+        switch (slot_pair_status)
+        {
+        case 0x00:
+            decoded_status += "Empty";
+            break;
+        case 0x01:
+            decoded_status += "Idle";
+            break;
+        // case 0x02: decoded_status += "Error/Reserved"; break; // This case should not happen with current logic if online
+        case 0x03:
+            decoded_status += "Moving";
+            break;
+        default:
+            decoded_status += "Unknown(" + std::to_string(slot_pair_status) + ")";
+            break; // Should also not happen
+        }
+        if (i < 3)
+            decoded_status += ", ";
+    }
+    decoded_status += "]";
+    return decoded_status;
+}
 
 void set_motion_res_datas(unsigned char *set_buf, unsigned char AMS_num, unsigned char read_num)
 {
@@ -564,14 +596,14 @@ void set_motion_res_datas(unsigned char *set_buf, unsigned char AMS_num, unsigne
 
         if (should_print_log)
         {
-            ESP_LOGI(TAG, "Reporting AMS %c Slot %d: Motion=%s, MetersSent=%.3fm (RawMeters=%.3fm), IsActive=%s, StatusByte=0x%02X",
+            ESP_LOGI(TAG, "Reporting AMS %c Slot %d: Motion=%s, MetersSent=%.3fm, IsActive=%s, StatusByte=0x%02X (%s)",
                      current_ams_id_char_for_logging,
                      read_num,
-                     filament_state_to_string(target_filament->motion_set), // Use the helper
+                     filament_state_to_string(target_filament->motion_set),
                      meters,
-                     target_filament->meters,
                      is_now_active_filament ? "Yes" : "No",
-                     set_buf[24]); // Log the filament_left_char for this AMS
+                     set_buf[24],                                  // The raw byte
+                     decode_ams_status_byte(set_buf[24]).c_str()); // The decoded string
 
             // Update last printed state for this specific filament
             last_printed_info[global_filament_idx].motion_set = target_filament->motion_set;
@@ -580,10 +612,12 @@ void set_motion_res_datas(unsigned char *set_buf, unsigned char AMS_num, unsigne
         }
     }
     else if (read_num == 0xFF && should_print_log)
-    { // Reporting general status for an AMS, not a specific slot
-        ESP_LOGI(TAG, "Reporting AMS %c (No Specific Slot): StatusByte=0x%02X",
+    {
+        // Reporting general status for an AMS, not a specific slot
+        ESP_LOGI(TAG, "Reporting AMS %c (No Specific Slot): StatusByte=0x%02X (%s)",
                  current_ams_id_char_for_logging,
-                 set_buf[24]);
+                 set_buf[24],
+                 decode_ams_status_byte(set_buf[24]).c_str());
     }
 
     if (should_print_log)
