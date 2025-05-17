@@ -1157,6 +1157,7 @@ namespace esphome
         package_type stu = BambuBus_package_NONE;
         static uint64_t time_set = 0;
         static uint64_t time_motion = 0;
+        static uint64_t timeout_time = 1000;
 
         uint32_t timex = esphome::millis(); // 使用 ESPHome 的时间函数
 
@@ -1178,7 +1179,7 @@ namespace esphome
             {
             case BambuBus_package_heartbeat:
                 ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_heartbeat)...");
-                time_set = timex + 1000;
+                time_set = timex + timeout_time;
                 break;
             case BambuBus_package_filament_motion_short:
                 ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_short)...");
@@ -1187,7 +1188,7 @@ namespace esphome
             case BambuBus_package_filament_motion_long:
                 ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_filament_motion_long)...");
                 send_for_Dxx(buf_X, data_length);
-                time_motion = timex + 1000;
+                time_motion = timex + timeout_time;
                 break;
             case BambuBus_package_online_detect:
                 ESP_LOGD(TAG, "Processing package (Type: BambuBus_package_online_detect)...");
@@ -1306,7 +1307,8 @@ namespace esphome
         if (Bambubus_need_to_save)
         {
             Bambubus_save();         // Bambubus_save 内部会重置 Bambubus_need_to_save
-            time_set = timex + 1000; // 这行在这里可能不需要，除非保存操作也应重置心跳超时
+            Bambubus_need_to_save = false;
+            time_set = timex + timeout_time; // 这行在这里可能不需要，除非保存操作也应重置心跳超时
         }
 
         return stu;
