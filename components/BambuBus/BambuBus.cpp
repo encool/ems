@@ -506,6 +506,12 @@ static uint32_t last_log_print_time_ms = 0;
 const uint32_t LOG_PRINT_INTERVAL_MS = 5000;         // Log every 5 seconds
 const float METERS_CHANGE_THRESHOLD_FOR_LOG = 0.01f; // Log if meters change by at least 1cm
 
+static const float SIMULATED_SEND_SPEED_MM_PER_SECOND = 20.0f;   // 模拟送丝速度 (mm/s)
+static const float SIMULATED_PULL_SPEED_MM_PER_SECOND = 20.0f;   // 模拟退丝速度 (mm/s)
+static const float SIMULATED_CONSUME_SPEED_MM_PER_SECOND = 5.0f; // 模拟打印消耗速度 (mm/s)
+// 可以考虑为每个耗材槽模拟一个最大长度，用完后状态变为offline，但暂时简化处理
+// static const float MAX_SIMULATED_FILAMENT_LENGTH_METERS = 50.0f;
+
 // Helper function to decode the status byte for logging
 std::string decode_ams_status_byte(uint8_t status_byte)
 {
