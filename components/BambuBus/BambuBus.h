@@ -64,44 +64,6 @@ extern "C"
         BambuBus_package_ETC,
         __BambuBus_package_packge_type_size
     };
-
-    std::string packageTypeToString(package_type type)
-    {
-        switch (type)
-        {
-        case BambuBus_package_ERROR:
-            return "BambuBus_package_ERROR";
-        case BambuBus_package_NONE:
-            return "BambuBus_package_NONE";
-        case BambuBus_package_filament_motion_short:
-            return "BambuBus_package_filament_motion_short";
-        case BambuBus_package_filament_motion_long:
-            return "BambuBus_package_filament_motion_long";
-        case BambuBus_package_online_detect:
-            return "BambuBus_package_online_detect";
-        case BambuBus_package_REQx6:
-            return "BambuBus_package_REQx6";
-        case BambuBus_package_NFC_detect:
-            return "BambuBus_package_NFC_detect";
-        case BambuBus_package_set_filament:
-            return "BambuBus_package_set_filament";
-        case BambuBus_long_package_MC_online:
-            return "BambuBus_long_package_MC_online";
-        case BambuBus_longe_package_filament: // 匹配您提供的拼写
-            return "BambuBus_longe_package_filament";
-        case BambuBus_long_package_version:
-            return "BambuBus_long_package_version";
-        case BambuBus_package_heartbeat:
-            return "BambuBus_package_heartbeat";
-        case BambuBus_package_ETC:
-            return "BambuBus_package_ETC";
-        case __BambuBus_package_packge_type_size: // 匹配您提供的拼写
-            return "__BambuBus_package_packge_type_size";
-        default:
-            // 处理未知的枚举值，可以返回一个默认字符串或抛出异常
-            return "Unknown_package_type (" + std::to_string(static_cast<int>(type)) + ")";
-        }
-    }
     extern void BambuBus_init();
     // extern package_type BambuBus_run();
 #define max_filament_num 4
