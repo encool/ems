@@ -1213,7 +1213,7 @@ namespace esphome
             need_debug = false;
 
             stu = get_packge_type(buf_X, data_length); // have_data
-            ESP_LOGI(TAG, "Processing package (Type: %s)...", packageTypeToString(stu).c_str());
+            // ESP_LOGI(TAG, "Processing package (Type: %s)...", packageTypeToString(stu).c_str());
             switch (stu)
             {
             case BambuBus_package_heartbeat:
@@ -1298,9 +1298,10 @@ namespace esphome
         // 以下超时逻辑检查
         if (time_set != 0 && timex > time_set) // 确保 time_set 被初始化过 (从 heartbeat 收到后)
         {
+            time_set = 0; // 重置超时，等待下一次心跳
+
             ESP_LOGW(TAG, "Heartbeat timeout, printer might be offline.");
             stu = BambuBus_package_ERROR; // offline
-            time_set = 0;                 // 重置超时，等待下一次心跳
             // 当打印机离线时，可能需要重置所有耗材的运动状态为 idle
             for (auto &ams_slots : data_save.filament)
             {
@@ -1317,6 +1318,8 @@ namespace esphome
         }
         if (time_motion != 0 && timex > time_motion)
         {
+            time_motion = 0; // 重置超时，等待下一次运动指令
+
             ESP_LOGW(TAG, "Motion timeout, setting active filaments to idle if not already.");
             // 这个逻辑是：如果一个运动指令后一段时间没有新的运动指令，则认为该运动已完成/超时
             // 并将 *所有* 槽位设置为 idle。这可能需要更精细的控制，
@@ -1340,13 +1343,12 @@ namespace esphome
                 Bambubus_set_need_to_save();
                 this->trigger_ha_update();
             }
-            time_motion = 0; // 重置超时，等待下一次运动指令
         }
 
         if (Bambubus_need_to_save)
         {
-            Bambubus_save(); // Bambubus_save 内部会重置 Bambubus_need_to_save
             Bambubus_need_to_save = false;
+            Bambubus_save();                 // Bambubus_save 内部会重置 Bambubus_need_to_save
             time_set = timex + timeout_time; // 这行在这里可能不需要，除非保存操作也应重置心跳超时
         }
 
