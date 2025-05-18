@@ -1213,7 +1213,7 @@ namespace esphome
             need_debug = false;
 
             stu = get_packge_type(buf_X, data_length); // have_data
-            ESP_LOGI(TAG, "Processing package (Type: %s)...", packageTypeToString(stu));
+            ESP_LOGI(TAG, "Processing package (Type: %s)...", packageTypeToString(stu).c_str());
             switch (stu)
             {
             case BambuBus_package_heartbeat:
