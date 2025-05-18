@@ -1676,8 +1676,8 @@ namespace esphome
         static uint32_t last_save_time_ms = 0;
         if (changed_anything && (current_time_ms - last_save_time_ms > 5000))
         {
-            Bambubus_set_need_to_save(); // 标记需要保存（如果频繁改变，可能需要优化保存策略）
-            this->trigger_ha_update();   // 如果 meters 的变化需要反映到 HA，则触发更新
+            // Bambubus_set_need_to_save(); // 标记需要保存（如果频繁改变，可能需要优化保存策略）
+            // this->trigger_ha_update();   // 如果 meters 的变化需要反映到 HA，则触发更新
         }
     }
 }
