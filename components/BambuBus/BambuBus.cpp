@@ -157,6 +157,11 @@ void add_filament_meters(int num, float meters)
 {
     data_save.filament[num / 4][num % 4].meters += meters;
 }
+
+void set_filament_meters(int num, float meters)
+{
+    data_save.filament[num / 4][num % 4].meters = meters;
+}
 float get_filament_meters(int num)
 {
     return data_save.filament[num / 4][num % 4].meters;
@@ -1411,7 +1416,6 @@ namespace esphome
         // Process received data
         BambuBus_run();
 
-        simulate_filament_motion_(); // 新增：调用模拟运动逻辑
     }
 
     // 用于带 DE 控制发送的新函数
@@ -1583,102 +1587,5 @@ namespace esphome
             this->trigger_ha_update();
         }
         */
-    }
-
-    void BambuBus::simulate_filament_motion_()
-    {
-        uint32_t current_time_ms = esphome::millis();
-        if (this->last_simulation_time_ms_ == 0)
-        { // 首次运行
-            this->last_simulation_time_ms_ = current_time_ms;
-            return;
-        }
-
-        float delta_time_seconds = (current_time_ms - this->last_simulation_time_ms_) / 1000.0f;
-        if (delta_time_seconds <= 0.001f)
-        { // 时间间隔过小，避免除零或不精确计算
-            return;
-        }
-        this->last_simulation_time_ms_ = current_time_ms;
-
-        bool changed_anything = false;
-
-        for (int ams_idx = 0; ams_idx < 4; ++ams_idx)
-        {
-            for (int slot_idx = 0; slot_idx < max_filament_num; ++slot_idx)
-            {
-                _filament *current_filament = &data_save.filament[ams_idx][slot_idx];
-                float length_change_mm = 0.0f;
-
-                // 只对在线的耗材进行模拟运动
-                if (current_filament->statu == offline)
-                {
-                    continue;
-                }
-
-                switch (current_filament->motion_set)
-                {
-                case need_send_out:
-                    length_change_mm = SIMULATED_SEND_SPEED_MM_PER_SECOND * delta_time_seconds;
-                    current_filament->meters += (length_change_mm / 1000.0f); // meters 增加
-                    ESP_LOGD(TAG, "AMS %d Slot %d (send_out): added %.3f mm, total %.2f m", ams_idx, slot_idx, length_change_mm, current_filament->meters);
-                    changed_anything = true;
-                    // 当送丝完成后，通常外部逻辑会将其状态改回 idle 或 on_use，这里我们不自动改变 motion_set
-                    break;
-
-                case need_pull_back:
-                    length_change_mm = SIMULATED_PULL_SPEED_MM_PER_SECOND * delta_time_seconds;
-                    // 退丝时，我们假设是减少已送出的长度，所以 meters 也应该减少（如果 meters 代表的是已送出未收回的）
-                    // 或者如果 meters 总是代表总消耗，退丝只是物理动作，不改变总消耗。
-                    // 当前代码中，AMS08 meter 为负，AMS Lite meter 为正。
-                    // 假设 meters 统一代表“已离开线轴的长度”
-                    // 如果是 AMS08 (BambuBus_address == 0x700)，它期望负值，且越送越多（绝对值变大）
-                    // 如果是 AMS Lite (BambuBus_address == 0x1200)，它期望正值，且越送越多
-                    // 为了简化模拟，我们统一让 meters 增加代表送出，减少代表拉回。
-                    // 打印机实际反馈的值会根据 AMS 类型加负号。
-                    if (current_filament->meters > (length_change_mm / 1000.0f))
-                    {
-                        current_filament->meters -= (length_change_mm / 1000.0f); // meters 减少
-                    }
-                    else
-                    {
-                        current_filament->meters = 0.0f; // 不能为负
-                    }
-                    ESP_LOGD(TAG, "AMS %d Slot %d (pull_back): removed %.3f mm, total %.2f m", ams_idx, slot_idx, length_change_mm, current_filament->meters);
-                    changed_anything = true;
-                    // 当退丝完成后，通常外部逻辑会将其状态改回 idle，这里我们不自动改变 motion_set
-                    break;
-
-                case on_use:
-                    // 只有当前选中的耗材 (BambuBus_now_filament_num) 且其状态为 on_use 时才模拟消耗
-                    if (data_save.BambuBus_now_filament_num == (ams_idx * 4 + slot_idx))
-                    {
-                        length_change_mm = SIMULATED_CONSUME_SPEED_MM_PER_SECOND * delta_time_seconds;
-                        current_filament->meters += (length_change_mm / 1000.0f); // meters 增加 (消耗)
-                        ESP_LOGD(TAG, "AMS %d Slot %d (on_use): consumed %.3f mm, total %.2f m", ams_idx, slot_idx, length_change_mm, current_filament->meters);
-                        changed_anything = true;
-                    }
-                    break;
-
-                case idle:
-                default:
-                    // 无动作
-                    break;
-                }
-
-                // 可选：模拟耗材用尽
-                // if (current_filament->meters >= MAX_SIMULATED_FILAMENT_LENGTH_METERS) {
-                //    current_filament->statu = offline;
-                //    current_filament->motion_set = idle; // 耗材用完，强制空闲
-                //    ESP_LOGI(TAG, "AMS %d Slot %d: Filament run out, set to offline.", ams_idx, slot_idx);
-                // }
-            }
-        }
-        static uint32_t last_save_time_ms = 0;
-        if (changed_anything && (current_time_ms - last_save_time_ms > 5000))
-        {
-            // Bambubus_set_need_to_save(); // 标记需要保存（如果频繁改变，可能需要优化保存策略）
-            // this->trigger_ha_update();   // 如果 meters 的变化需要反映到 HA，则触发更新
-        }
     }
 }
