@@ -33,9 +33,12 @@ CONFIG_SCHEMA = cv.Schema({
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
 
 def to_code(config):
+    # cg.add_header("BambuBus.h")
     var = cg.new_Pvariable(config[CONF_ID])
     yield cg.register_component(var, config)
     yield uart.register_uart_device(var, config)
+    cg.add_global(cg.RawExpression('using esphome::BambuBus;'))
+    cg.add_library('BambuBus', None)
 
         # <<<--- 如果配置了 DE 引脚，生成设置代码 ---
     if CONF_DE_PIN in config:
