@@ -153,11 +153,6 @@ void reset_filament_meters(int num)
 {
     data_save.filament[num / 4][num % 4].meters = 0;
 }
-void add_filament_meters(int num, float meters)
-{
-    data_save.filament[num / 4][num % 4].meters += meters;
-}
-
 void set_filament_meters(int num, float meters)
 {
     data_save.filament[num / 4][num % 4].meters = meters;

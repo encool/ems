@@ -71,7 +71,6 @@ extern "C"
     extern void Bambubus_set_need_to_save();
     extern int get_now_filament_num();
     extern void reset_filament_meters(int num);
-    extern void add_filament_meters(int num, float meters);
     extern void set_filament_meters(int num, float meters);
     extern float get_filament_meters(int num);
     extern void set_filament_online(int num, bool if_online);
