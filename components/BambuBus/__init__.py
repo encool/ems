@@ -1,12 +1,12 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import uart, output 
+from esphome.components import uart, output, select, sensor 
 from esphome.const import CONF_ID
 from esphome.components import select # 确保 select 被导入，以便引用 select.Select
 
 from esphome.pins import gpio_output_pin_schema
 
-DEPENDENCIES = ['uart', 'output', 'select']
+DEPENDENCIES = ['uart', 'output', 'select', 'sensor']
 
 # empty_uart_component_ns = cg.esphome_ns.namespace('bambu_bus')
 # EmptyUARTComponent = empty_uart_component_ns.class_('BambuBus', cg.Component, uart.UARTDevice)
@@ -20,6 +20,7 @@ FilamentMotorSelect = cg.esphome_ns.class_('FilamentMotorSelect', select.Select,
 # Configuration keys for the select entities this component will manage
 CONF_FILAMENT_STATE_SELECT = 'filament_state_select'
 CONF_FILAMENT_MOTOR_SELECT = 'filament_motor_select'
+CONF_FILAMENT_METERS = 'filament_meters'
 
 CONF_DE_PIN = 'de_pin'
 
@@ -28,6 +29,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_DE_PIN): gpio_output_pin_schema,
     cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(FilamentStateSelect),
     cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(FilamentMotorSelect),
+    cv.Optional(CONF_FILAMENT_METERS): cv.ensure_list(cv.use_id(sensor.Sensor)),
     # cv.Optional(CONF_FILAMENT_STATE_SELECT): cv.use_id(cv.Any),
     # cv.Optional(CONF_FILAMENT_MOTOR_SELECT): cv.use_id(cv.Any),
 }).extend(cv.COMPONENT_SCHEMA).extend(uart.UART_DEVICE_SCHEMA)
@@ -50,4 +52,9 @@ def to_code(config):
     
     if CONF_FILAMENT_MOTOR_SELECT in config:
         select_entity = yield cg.get_variable(config[CONF_FILAMENT_MOTOR_SELECT])
-        cg.add(var.set_filament_motor_select(select_entity))        
+        cg.add(var.set_filament_motor_select(select_entity))
+
+    if CONF_FILAMENT_METERS in config:
+        for i, conf in enumerate(config[CONF_FILAMENT_METERS]):
+            sens = yield cg.get_variable(conf)
+            cg.add(var.set_filament_meters_sensor(i, sens))        

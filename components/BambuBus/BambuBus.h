@@ -6,6 +6,7 @@
 #include "esphome/core/preferences.h"
 #include "esphome/core/hal.h" // <<<--- 确保包含 GPIOPin 定义
 #include "esphome/components/select/select.h"
+#include "esphome/components/sensor/sensor.h"
 
 // #include "main.h"
 #include "crc.h"
@@ -144,9 +145,19 @@ namespace esphome
         // Pointers to the select entities to update them
         FilamentStateSelect *state_select_entity_{nullptr};
         FilamentMotorSelect *motor_select_entity_{nullptr};
+        sensor::Sensor *filament_meters_sensors_[16]{};
         // Methods to link select entities (called from generated code via __init__.py)
         void set_filament_state_select(FilamentStateSelect *select_entity) { this->state_select_entity_ = select_entity; }
         void set_filament_motor_select(FilamentMotorSelect *select_entity) { this->motor_select_entity_ = select_entity; }
+
+        void set_filament_meters_sensor(int index, sensor::Sensor *sensor)
+        {
+            if (index >= 0 && index < 16)
+            {
+                this->filament_meters_sensors_[index] = sensor;
+            }
+        }
+        void publish_filament_meters_to_ha();
 
         // Methods to set the states (called by select entities, OR by internal logic that wants to update HA)
         // For now, HA select entities are display-only, so these might be called internally

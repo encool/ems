@@ -157,6 +157,7 @@ void set_filament_meters(int num, float meters)
 {
     ESP_LOGI(TAG, "set_filament_meters num %d meters -> %d m", num, meters);
     data_save.filament[num / 4][num % 4].meters = meters;
+    g_bambu_bus_instance->publish_filament_meters_to_ha();
 }
 float get_filament_meters(int num)
 {
@@ -1510,6 +1511,18 @@ namespace esphome
         if (this->state_select_entity_)
         {
             this->state_select_entity_->publish_state_from_parent(this->get_current_selected_filament_motion_state());
+        }
+    }
+
+    void BambuBus::publish_filament_meters_to_ha()
+    {
+        for (int i = 0; i < 16; i++)
+        {
+            if (this->filament_meters_sensors_[i])
+            {
+                float meters = get_filament_meters(i);
+                this->filament_meters_sensors_[i]->publish_state(meters);
+            }
         }
     }
 
