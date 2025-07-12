@@ -347,6 +347,7 @@ void BambuBus_init()
     {
         slot_in_first_ams.statu = online;
     }
+    data_save.filament[0][3].statu = offline;
 
     // 为新初始化的数据设置当前耗材编号、版本和校验和
     data_save.BambuBus_now_filament_num = 0;
